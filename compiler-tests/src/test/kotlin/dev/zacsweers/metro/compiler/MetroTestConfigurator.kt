@@ -76,8 +76,8 @@ class MetroTestConfigurator(testServices: TestServices) : MetaTestConfigurator(t
     val generateClassesInIr =
       generateClassesInIrDirectives.lastOrNull()?.toString()?.toBoolean() == true
     val irOnlyClassesSuite =
-      testClassName == "IrOnlyClassesBoxTestGenerated" ||
-        testClassName == "OmitRedundantMirrorsIrOnlyClassesBoxTestGenerated"
+      testClassName.endsWith("IrOnlyClassesBoxTestGenerated") ||
+        testClassName.endsWith("OmitRedundantMirrorsIrOnlyClassesBoxTestGenerated")
     if (
       irOnlyClassesSuite &&
         shouldSkipForCompilerVersion(
