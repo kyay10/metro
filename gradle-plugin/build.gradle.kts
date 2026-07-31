@@ -14,6 +14,7 @@ plugins {
   alias(libs.plugins.buildConfig)
   alias(libs.plugins.android.lint)
   alias(libs.plugins.shadow) apply false
+  pluginDevKit("gradle-plugin")
   id("metro.base")
   id("metro.publish")
 }
@@ -42,6 +43,16 @@ listOf("runtimeElements", "apiElements").forEach { configurationName ->
 
 tasks.withType<ValidatePlugins>().configureEach { enableStricterValidation = true }
 
+// Collect all supported Kotlin versions from compiler-compat modules
+val versionAliasesFile =
+  rootProject.isolated.projectDirectory.dir("compiler-compat").file("version-aliases.txt")
+val supportedVersions =
+  versionAliasesFile.asFile
+    .readLines()
+    .filterNot { it.isBlank() || it.startsWith('#') }
+    .map { KotlinToolingVersion(it) }
+    .sorted()
+
 buildConfig {
   packageName("dev.zacsweers.metro.gradle")
   useKotlinOutput {
@@ -51,20 +62,19 @@ buildConfig {
   buildConfigField("String", "VERSION", providers.gradleProperty("VERSION_NAME").map { "\"$it\"" })
   buildConfigField("String", "PLUGIN_ID", libs.versions.pluginId.map { "\"$it\"" })
 
-  // Collect all supported Kotlin versions from compiler-compat modules
-  val versionAliasesFile =
-    rootProject.isolated.projectDirectory.dir("compiler-compat").file("version-aliases.txt")
-  val supportedVersions =
-    versionAliasesFile.asFile
-      .readLines()
-      .filterNot { it.isBlank() || it.startsWith('#') }
-      .map { KotlinToolingVersion(it) }
-      .sorted()
-
   buildConfigField(
     "List<String>",
     "SUPPORTED_KOTLIN_VERSIONS",
     "listOf(${supportedVersions.joinToString { "\"$it\"" }})",
+  )
+}
+
+pluginDevKit {
+  addRuntimeDependency = false
+
+  supportedVersions.forEach { testAgainst(it) }
+  defaultTestVersion(
+    providers.gradleProperty("metro.testCompilerVersion").getOrElse(libs.versions.kotlin.get())
   )
 }
 
@@ -148,16 +158,17 @@ dependencies {
   functionalTestImplementation(libs.kotlin.test)
   functionalTestImplementation(libs.testkit.support)
   functionalTestImplementation(libs.testkit.truth)
-  // TODO really only here for extensions tests
-  functionalTestRuntimeOnly(project(":compiler"))
-  functionalTestRuntimeOnly(project(":runtime"))
-  functionalTestRuntimeOnly(project(":runtime-coroutines"))
-  functionalTestRuntimeOnly(project(":interop-dagger"))
   functionalTestRuntimeOnly(libs.circuit.runtime.presenter)
 }
 
-val testCompilerVersion =
-  providers.gradleProperty("metro.testCompilerVersion").orElse(libs.versions.kotlin).get()
+pluginDevKit {
+  compilerPlugin = project(":compiler")
+  functionalTestProject(project(":runtime"))
+  functionalTestProject(project(":runtime-coroutines"))
+  functionalTestProject(project(":metro-trace"))
+  functionalTestProject(project(":interop-dagger"))
+  functionalTestProject(project(":interop-guice"))
+}
 
 fun androidHomeOrNull(): File? {
   val localProps = rootProject.isolated.projectDirectory.file("local.properties").asFile
@@ -171,22 +182,13 @@ fun androidHomeOrNull(): File? {
   return if (androidHome?.exists() == true) androidHome else null
 }
 
-// Forwarded to KmpTarget.selectedTargets() to scope IC test parameterization. PR/branch CI leaves
-// this unset (JVM only); main runs use a per-target value or `all` to fan out across targets.
-val functionalTestKmpTarget = providers.gradleProperty("metro.functionalTestKmpTarget").orNull
 val testOmitRedundantMirrors = providers.gradleProperty("metro.testOmitRedundantMirrors").orNull
 
 tasks.withType<Test>().configureEach {
   maxParallelForks = Runtime.getRuntime().availableProcessors() * 2
-  systemProperty(
-    "com.autonomousapps.plugin-under-test.version",
-    providers.gradleProperty("VERSION_NAME").get(),
-  )
-  systemProperty("dev.zacsweers.metro.gradle.test.kotlin-version", testCompilerVersion)
   systemProperty("metro.agpVersion", libs.versions.agp.get())
   systemProperty("metro.circuitVersion", libs.versions.circuit.get())
   systemProperty("metro.androidHome", androidHomeOrNull()?.absolutePath)
-  functionalTestKmpTarget?.let { systemProperty("metro.functionalTestKmpTarget", it) }
   testOmitRedundantMirrors?.let { systemProperty("metro.testOmitRedundantMirrors", it) }
 }
 

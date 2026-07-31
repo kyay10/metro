@@ -4,9 +4,9 @@ package dev.zacsweers.metro.gradle.incremental
 
 import com.autonomousapps.kit.gradle.Dependency
 import com.google.common.truth.Truth.assertThat
-import dev.zacsweers.metro.gradle.KmpTarget
 import dev.zacsweers.metro.gradle.MetroProject
 import org.gradle.testkit.runner.TaskOutcome
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.KmpTarget
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
@@ -119,7 +119,6 @@ class ContributionHintICTests :
       rootDir = project.rootDir,
       source = fixture.bindingContainer,
       content = fixture.changedContribution,
-      sourceSet = "main",
     )
 
     val secondBuild = project.compileKotlinAndFail(task = ":compileKotlin")

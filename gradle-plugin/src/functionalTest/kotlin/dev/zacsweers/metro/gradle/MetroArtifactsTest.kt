@@ -14,6 +14,10 @@ import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.isDev
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.KotlinPlugins
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerToolingVersion
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
@@ -65,11 +69,10 @@ class MetroArtifactsTest {
       getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.20-dev-6138")
     val propertyOverride = !compilerVersionDefault
     val fixture =
-      object :
-        MetroProject(
-          multiplatform = false,
-          additionalGradleProperties = listOf("metro.generateClassesInIr=$propertyOverride"),
-        ) {
+      object : MetroProject(multiplatform = false) {
+        override val extraGradleProperties: List<String>
+          get() = super.extraGradleProperties + "metro.generateClassesInIr=$propertyOverride"
+
         override fun sources() =
           listOf(
             source(
@@ -142,11 +145,10 @@ class MetroArtifactsTest {
   fun `diagnosticsRenderMode is not a compilation input`() {
     val testJavaHome = File(System.getProperty("java.home")).invariantSeparatorsPath
     val fixture =
-      object :
-        MetroProject(
-          multiplatform = false,
-          additionalGradleProperties = listOf("org.gradle.java.home=$testJavaHome"),
-        ) {
+      object : MetroProject(multiplatform = false) {
+        override val extraGradleProperties: List<String> =
+          super.extraGradleProperties + "org.gradle.java.home=$testJavaHome"
+
         override fun sources() =
           listOf(
             source(
@@ -179,11 +181,10 @@ class MetroArtifactsTest {
   fun `shaded compiler renders rich diagnostics`() {
     val testJavaHome = File(System.getProperty("java.home")).invariantSeparatorsPath
     val fixture =
-      object :
-        MetroProject(
-          multiplatform = false,
-          additionalGradleProperties = listOf("org.gradle.java.home=$testJavaHome"),
-        ) {
+      object : MetroProject(multiplatform = false) {
+        override val extraGradleProperties: List<String> =
+          super.extraGradleProperties + "org.gradle.java.home=$testJavaHome"
+
         override fun sources() =
           listOf(
             source(
@@ -749,7 +750,7 @@ class MetroArtifactsTest {
               sources = projectSources
               withBuildScript {
                 plugins(
-                  GradlePlugins.Kotlin.multiplatform(),
+                  KotlinPlugins.multiplatform(),
                   GradlePlugins.agpKmp,
                   GradlePlugins.metro,
                 )

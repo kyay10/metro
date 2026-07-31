@@ -5,6 +5,7 @@ package dev.zacsweers.metro.compiler
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaConstructor
+import org.jetbrains.kotlin.compiler.plugin.devkit.runners.DevKitTest
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.test.backend.ir.IrBackendInput
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
@@ -16,8 +17,6 @@ import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirective
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.JVM_TARGET
 import org.jetbrains.kotlin.test.model.BackendInputHandler
 import org.jetbrains.kotlin.test.runners.codegen.AbstractFirLightTreeBlackBoxCodegenTest
-import org.jetbrains.kotlin.test.services.EnvironmentBasedStandardLibrariesPathProvider
-import org.jetbrains.kotlin.test.services.KotlinStandardLibrariesPathProvider
 
 @Suppress("UNCHECKED_CAST")
 private val NoIrCompilationErrorsHandler =
@@ -32,15 +31,10 @@ private val NoIrCompilationErrorsHandler =
     .kotlin as KClass<BackendInputHandler<IrBackendInput>>?
     ?: error("Could not find NoIrCompilationErrorsHandler for the current kotlin version")
 
-open class AbstractBoxTest : AbstractFirLightTreeBlackBoxCodegenTest() {
-  override fun createKotlinStandardLibrariesPathProvider(): KotlinStandardLibrariesPathProvider {
-    return EnvironmentBasedStandardLibrariesPathProvider
-  }
-
-  override fun configure(builder: TestConfigurationBuilder) {
-    super.configure(builder)
-
-    with(builder) {
+open class AbstractBoxTest(vararg config: TestConfigurationBuilder.() -> Unit) :
+  DevKitTest(
+    AbstractFirLightTreeBlackBoxCodegenTest(),
+    {
       configurePlugin()
 
       useSourcePreprocessor(::KotlinTestImportPreprocessor)
@@ -62,54 +56,39 @@ open class AbstractBoxTest : AbstractFirLightTreeBlackBoxCodegenTest() {
           // Errors in compiler plugin backend should fail test without running box function.
           { NoIrCompilationErrorsHandler.primaryConstructor!!.javaConstructor!!.newInstance(it) })
       }
+    },
+    *config,
+  )
+
+open class AbstractFastInitBoxTest :
+  AbstractBoxTest({
+    defaultDirectives { MetroDirectives.ENABLE_SWITCHING_PROVIDERS.with(true) }
+  })
+
+open class AbstractContributionProvidersBoxTest :
+  AbstractBoxTest({
+    defaultDirectives {
+      // Only run on 2.3.20+ due to top-level requirements
+      MetroDirectives.MIN_COMPILER_VERSION.with("2.3.20")
+      MetroDirectives.GENERATE_CONTRIBUTION_HINTS.with(true)
+      +MetroDirectives.GENERATE_CONTRIBUTION_HINTS_IN_FIR
+
+      MetroDirectives.GENERATE_CONTRIBUTION_PROVIDERS.with(true)
     }
-  }
-}
+  })
 
-open class AbstractFastInitBoxTest : AbstractBoxTest() {
-  override fun configure(builder: TestConfigurationBuilder) {
-    super.configure(builder)
-
-    with(builder) { defaultDirectives { MetroDirectives.ENABLE_SWITCHING_PROVIDERS.with(true) } }
-  }
-}
-
-open class AbstractContributionProvidersBoxTest : AbstractBoxTest() {
-  override fun configure(builder: TestConfigurationBuilder) {
-    super.configure(builder)
-
-    with(builder) {
-      defaultDirectives {
-        // Only run on 2.3.20+ due to top-level requirements
-        MetroDirectives.MIN_COMPILER_VERSION.with("2.3.20")
-        MetroDirectives.GENERATE_CONTRIBUTION_HINTS.with(true)
-        +MetroDirectives.GENERATE_CONTRIBUTION_HINTS_IN_FIR
-
-        MetroDirectives.GENERATE_CONTRIBUTION_PROVIDERS.with(true)
-      }
-    }
-  }
-}
-
-open class AbstractIrOnlyClassesBoxTest : AbstractBoxTest() {
-  override fun configure(builder: TestConfigurationBuilder) {
-    super.configure(builder)
-
-    with(builder) {
+open class AbstractIrOnlyClassesBoxTest(vararg config: TestConfigurationBuilder.() -> Unit) :
+  AbstractBoxTest(
+    {
       defaultDirectives {
         MetroDirectives.MIN_COMPILER_VERSION.with("2.4.20-dev-6138")
         MetroDirectives.GENERATE_CLASSES_IN_IR.with(true)
       }
-    }
-  }
-}
+    },
+    *config,
+  )
 
-open class AbstractOmitRedundantMirrorsIrOnlyClassesBoxTest : AbstractIrOnlyClassesBoxTest() {
-  override fun configure(builder: TestConfigurationBuilder) {
-    super.configure(builder)
-
-    with(builder) {
-      defaultDirectives { MetroDirectives.OMIT_REDUNDANT_MIRRORS.with(true) }
-    }
-  }
-}
+open class AbstractOmitRedundantMirrorsIrOnlyClassesBoxTest :
+  AbstractIrOnlyClassesBoxTest({
+    defaultDirectives { MetroDirectives.OMIT_REDUNDANT_MIRRORS.with(true) }
+  })

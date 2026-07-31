@@ -2,13 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
+import dev.zacsweers.metro.compiler.MetroDiagnosticsCompat.Companion.firIdenticalCompat
+import org.jetbrains.kotlin.compiler.plugin.devkit.runners.DevKitTest
+import org.jetbrains.kotlin.compiler.plugin.devkit.useFailureSuppressorsCompat
+import org.jetbrains.kotlin.js.test.runners.commonConfigurationForJsTest
 import org.jetbrains.kotlin.test.FirParser
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.backend.BlackBoxCodegenSuppressor.SuppressionChecker
 import org.jetbrains.kotlin.test.backend.handlers.KlibBackendDiagnosticsHandler
 import org.jetbrains.kotlin.test.backend.handlers.NoFirCompilationErrorsHandler
 import org.jetbrains.kotlin.test.backend.ir.IrDiagnosticsHandler
-import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.configureFirHandlersStep
 import org.jetbrains.kotlin.test.builders.configureIrHandlersStep
 import org.jetbrains.kotlin.test.builders.configureLoweredIrHandlersStep
@@ -19,22 +22,16 @@ import org.jetbrains.kotlin.test.directives.FirDiagnosticsDirectives.DISABLE_GEN
 import org.jetbrains.kotlin.test.directives.TestPhaseDirectives.LATEST_PHASE_IN_PIPELINE
 import org.jetbrains.kotlin.test.directives.TestPhaseDirectives.RUN_PIPELINE_TILL
 import org.jetbrains.kotlin.test.directives.configureFirParser
-import org.jetbrains.kotlin.test.runners.AbstractKotlinCompilerTest
-import org.jetbrains.kotlin.test.services.EnvironmentBasedStandardLibrariesPathProvider
-import org.jetbrains.kotlin.test.services.KotlinStandardLibrariesPathProvider
 import org.jetbrains.kotlin.test.services.LibraryProvider
+import org.jetbrains.kotlin.test.services.PhasedPipelineChecker
 import org.jetbrains.kotlin.test.services.TestPhase
+import org.jetbrains.kotlin.utils.bind
 
-open class AbstractJsDiagnosticTest : AbstractKotlinCompilerTest() {
-  override fun createKotlinStandardLibrariesPathProvider(): KotlinStandardLibrariesPathProvider {
-    return EnvironmentBasedStandardLibrariesPathProvider
-  }
-
-  override fun configure(builder: TestConfigurationBuilder) =
-    with(builder) {
-      globalDefaults { targetBackend = TargetBackend.JS_IR }
-
-      setupMetroJsPipeline(FirParser.LightTree)
+open class AbstractJsDiagnosticTest :
+  DevKitTest(
+    TargetBackend.JS_IR,
+    {
+      commonConfigurationForJsTest()
       configureFirParser(FirParser.LightTree)
       configurePlugin()
 
@@ -80,7 +77,7 @@ open class AbstractJsDiagnosticTest : AbstractKotlinCompilerTest() {
 
       enableMetaInfoHandler()
       useAdditionalService(::LibraryProvider)
-      usePhasedPipelineFailureSuppressorCompat()
-      useAdditionalService<SuppressionChecker>(suppressionCheckerCtor)
-    }
-}
+      useFailureSuppressorsCompat(::PhasedPipelineChecker)
+      useAdditionalService<SuppressionChecker>(::SuppressionChecker.bind(null, null))
+    },
+  )

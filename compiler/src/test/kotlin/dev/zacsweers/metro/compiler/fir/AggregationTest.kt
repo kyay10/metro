@@ -26,8 +26,7 @@ class AggregationTest : MetroCompilerTest() {
   private val usesDirectBindingDeclarations: Boolean
     get() =
       metroOptions.omitRedundantMirrors &&
-        CompatContext.create(CompatContext.Factory.loadCompilerVersion())
-          .supportsAnnotationArgumentInvalidation
+        CompatContext.create().supportsAnnotationArgumentInvalidation
 
   @Test
   fun `contributing types are generated in fir`() {

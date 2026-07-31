@@ -6,11 +6,12 @@ pluginManagement {
     mavenCentral()
     google()
     gradlePluginPortal()
-    maven("https://redirector.kotlinlang.org/maven/bootstrap")
-    maven("https://redirector.kotlinlang.org/maven/dev/")
-    // Publications used by IJ
-    // https://kotlinlang.slack.com/archives/C7L3JB43G/p1757001642402909
-    maven("https://redirector.kotlinlang.org/maven/intellij-dependencies/")
+    maven {
+      name = "devKitSpace"
+      url = uri("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
+      credentials(PasswordCredentials::class)
+    }
+    mavenLocal()
   }
   plugins { id("com.gradle.develocity") version "4.5.0" }
 }
@@ -19,15 +20,19 @@ dependencyResolutionManagement {
   repositories {
     mavenCentral()
     google()
-    maven("https://redirector.kotlinlang.org/maven/bootstrap")
-    maven("https://redirector.kotlinlang.org/maven/dev/")
-    // Publications used by IJ
-    // https://kotlinlang.slack.com/archives/C7L3JB43G/p1757001642402909
-    maven("https://redirector.kotlinlang.org/maven/intellij-dependencies/")
+    maven {
+      name = "devKitSpace"
+      url = uri("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
+      credentials(PasswordCredentials::class)
+    }
+    mavenLocal()
   }
 }
 
-plugins { id("com.gradle.develocity") }
+plugins {
+  kotlin("compiler.plugin.devkit") version "0.0.1-SNAPSHOT"
+  id("com.gradle.develocity")
+}
 
 rootProject.name = "metro"
 
@@ -48,13 +53,6 @@ include(
   ":runtime",
   ":runtime-coroutines",
 )
-
-// Include compiler-compat versions
-rootProject.projectDir.resolve("compiler-compat").listFiles()!!.forEach {
-  if (it.isDirectory && it.name.startsWith("k") && File(it, "version.txt").exists()) {
-    include(":compiler-compat:${it.name}")
-  }
-}
 
 val VERSION_NAME: String by extra.properties
 

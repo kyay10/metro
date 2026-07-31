@@ -8,8 +8,6 @@
 # Keep versions in release order. CI treats the final entry as the newest tested version.
 # Blank lines and comments (starting with #) are ignored.
 
-2.3.0
-2.3.10
 2.3.20
 2.3.21
 2.4.0-dev-2124

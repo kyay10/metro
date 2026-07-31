@@ -4,14 +4,14 @@ package dev.zacsweers.metro.compiler.ir
 
 import com.google.common.truth.Truth.assertThat
 import dev.zacsweers.metro.compiler.compat.CompatContext
-import dev.zacsweers.metro.compiler.compat.KotlinToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
 import org.junit.Test
 
 class IcCapabilitiesBoundaryTest {
   @Test
   fun `compat capabilities match their compiler boundaries`() {
-    val compilerVersion = CompatContext.Factory.loadCompilerVersion()
-    val context = CompatContext.create(compilerVersion)
+    val compilerVersion = CompatContext.Factory.loadCompilerVersionOrNull()!!
+    val context = CompatContext.create()
 
     assertThat(context.supportsAutomaticDeclarationFinderTracking)
       .isEqualTo(compilerVersion >= KotlinToolingVersion("2.3.20"))

@@ -2,15 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
+import dev.zacsweers.metro.compiler.MetroDiagnosticsCompat.Companion.setupJvmPipelineSteps
 import dev.zacsweers.metro.compiler.compat.CompatContext
-import kotlin.getValue
+import org.jetbrains.kotlin.compiler.plugin.devkit.runners.DevKitTest
+import org.jetbrains.kotlin.compiler.plugin.devkit.useFailureSuppressorsCompat
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.test.FirParser
 import org.jetbrains.kotlin.test.TargetBackend
+import org.jetbrains.kotlin.test.backend.BlackBoxCodegenSuppressor
 import org.jetbrains.kotlin.test.backend.handlers.IrSourceRangesDumpHandler
 import org.jetbrains.kotlin.test.backend.handlers.IrTextDumpHandler
 import org.jetbrains.kotlin.test.backend.handlers.IrTreeVerifierHandler
-import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.configureIrHandlersStep
 import org.jetbrains.kotlin.test.configuration.additionalK2ConfigurationForIrTextTest
 import org.jetbrains.kotlin.test.configuration.commonHandlersForCodegenTest
@@ -24,10 +26,9 @@ import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirective
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.JVM_TARGET
 import org.jetbrains.kotlin.test.directives.TestPhaseDirectives.LATEST_PHASE_IN_PIPELINE
 import org.jetbrains.kotlin.test.directives.model.SimpleDirective
-import org.jetbrains.kotlin.test.runners.AbstractKotlinCompilerWithTargetBackendTest
-import org.jetbrains.kotlin.test.services.EnvironmentBasedStandardLibrariesPathProvider
-import org.jetbrains.kotlin.test.services.KotlinStandardLibrariesPathProvider
+import org.jetbrains.kotlin.test.services.PhasedPipelineChecker
 import org.jetbrains.kotlin.test.services.TestPhase
+import org.jetbrains.kotlin.utils.bind
 
 /**
  * IR dump test that uses [MetroIrPrettyKotlinDumpHandler] (with `betterDumpKotlinLike`) instead of
@@ -36,14 +37,11 @@ import org.jetbrains.kotlin.test.services.TestPhase
  * We don't extend `AbstractFirLightTreeJvmIrTextTest` because its parent registers the built-in
  * handler which can't be removed and would delete our golden files.
  */
-open class AbstractIrDumpTest : AbstractKotlinCompilerWithTargetBackendTest(TargetBackend.JVM_IR) {
-  override fun createKotlinStandardLibrariesPathProvider(): KotlinStandardLibrariesPathProvider {
-    return EnvironmentBasedStandardLibrariesPathProvider
-  }
-
-  override fun configure(builder: TestConfigurationBuilder) =
-    with(builder) {
-      setupMetroJvmPipelineCompat(FirParser.LightTree)
+open class AbstractIrDumpTest :
+  DevKitTest(
+    TargetBackend.JVM_IR,
+    {
+      setupJvmPipelineSteps(FirParser.LightTree)
       commonHandlersForCodegenTest()
       additionalK2ConfigurationForIrTextTest(FirParser.LightTree)
 
@@ -60,7 +58,10 @@ open class AbstractIrDumpTest : AbstractKotlinCompilerWithTargetBackendTest(Targ
         )
       }
 
-      useIrDumpFailureSuppressorsCompat()
+      useFailureSuppressorsCompat(
+        ::BlackBoxCodegenSuppressor,
+        ::PhasedPipelineChecker.bind(TestPhase.BACKEND),
+      )
       enableMetaInfoHandler()
 
       configurePlugin(compatContext)
@@ -85,8 +86,8 @@ open class AbstractIrDumpTest : AbstractKotlinCompilerWithTargetBackendTest(Targ
       }
 
       useMetaTestConfigurators(::MetroTestConfigurator)
-    }
-}
+    },
+  )
 
 private val SKIP_NEW_KOTLIN_REFLECT_COMPATIBILITY_CHECK_DIRECTIVE: SimpleDirective? by lazy {
   CodegenTestDirectives::class

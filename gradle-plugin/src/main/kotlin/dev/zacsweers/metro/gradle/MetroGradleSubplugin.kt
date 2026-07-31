@@ -195,11 +195,7 @@ public class MetroGradleSubplugin @Inject constructor(problems: Problems) :
     return true
   }
 
-  @OptIn(
-    DangerousMetroGradleApi::class,
-    ExperimentalMetroGradleApi::class,
-    RequiresIdeSupport::class,
-  )
+  @OptIn(ExperimentalMetroGradleApi::class)
   override fun applyToCompilation(
     kotlinCompilation: KotlinCompilation<*>
   ): Provider<List<SubpluginOption>> {

@@ -22,27 +22,21 @@ import dev.zacsweers.metro.compiler.circuit.CircuitContributionExtension
 import dev.zacsweers.metro.compiler.circuit.CircuitFirExtension
 import dev.zacsweers.metro.compiler.circuit.CircuitIrDeclarationGenerationExtension
 import dev.zacsweers.metro.compiler.circuit.CircuitIrExtension
-import dev.zacsweers.metro.compiler.circuit.configureCircuit
 import dev.zacsweers.metro.compiler.compat.CompatContext
-import dev.zacsweers.metro.compiler.compat.KotlinToolingVersion
 import dev.zacsweers.metro.compiler.fir.MetroFirExtensionRegistrar
 import dev.zacsweers.metro.compiler.hilt.HiltContributionExtension
 import dev.zacsweers.metro.compiler.hilt.HiltFirDeclarationExtension
 import dev.zacsweers.metro.compiler.interop.Ksp2AdditionalSourceProvider
-import dev.zacsweers.metro.compiler.interop.configureAnvilAnnotations
-import dev.zacsweers.metro.compiler.interop.configureDaggerAnnotations
-import dev.zacsweers.metro.compiler.interop.configureDaggerInterop
-import dev.zacsweers.metro.compiler.interop.configureGuiceInterop
-import dev.zacsweers.metro.compiler.interop.configureHiltAnnotations
 import dev.zacsweers.metro.compiler.ir.MetroIrGenerationExtension
 import dev.zacsweers.metro.compiler.test.TEST_COMPILER_VERSION
 import dev.zacsweers.metro.compiler.tracing.TraceContext
 import kotlin.io.path.Path
-import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.services.configureDefaultTestDataLibraries
+import org.jetbrains.kotlin.compiler.plugin.devkit.services.configureTestDataLibrary
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
@@ -56,23 +50,45 @@ import org.jetbrains.kotlin.test.services.temporaryDirectoryManager
 fun TestConfigurationBuilder.configurePlugin(
   compatContext: CompatContext = CompatContext.create()
 ) {
-  useConfigurators(
-    { MetroExtensionRegistrarConfigurator(it, compatContext) },
-    ::MetroRuntimeEnvironmentConfigurator,
-  )
+  useConfigurators({ MetroExtensionRegistrarConfigurator(it, compatContext) })
+  configureDefaultTestDataLibraries()
+  configureTestDataLibrary(TestDataLibraries.coroutines + TestDataLibraries.runtimeCoroutines) {
+    MetroDirectives.includeMetroRuntimeCoroutines(it.directives)
+  }
+  configureTestDataLibrary(TestDataLibraries.runtimeTracing) {
+    MetroDirectives.ENABLE_RUNTIME_TRACING in it.directives
+  }
 
   useDirectives(MetroDirectives)
 
-  useCustomRuntimeClasspathProviders(::MetroRuntimeClassPathProvider)
-
   useSourcePreprocessor(::MetroDefaultImportPreprocessor)
 
-  configureAnvilAnnotations()
-  configureDaggerAnnotations()
-  configureDaggerInterop()
-  configureGuiceInterop()
-  configureHiltAnnotations()
-  configureCircuit()
+  configureTestDataLibrary(TestDataLibraries.anvil) {
+    MetroDirectives.WITH_ANVIL in it.directives || MetroDirectives.ENABLE_ANVIL_KSP in it.directives
+  }
+  configureTestDataLibrary(TestDataLibraries.kiAnvil) {
+    MetroDirectives.WITH_KI_ANVIL in it.directives
+  }
+  configureTestDataLibrary(
+    TestDataLibraries.javaxInterop + TestDataLibraries.jakartaInterop + TestDataLibraries.dagger
+  ) {
+    MetroDirectives.enableDaggerRuntime(it.directives)
+  }
+  configureTestDataLibrary(TestDataLibraries.daggerInterop) {
+    MetroDirectives.enableDaggerRuntimeInterop(it.directives)
+  }
+  configureTestDataLibrary(TestDataLibraries.guice) {
+    MetroDirectives.enableGuiceInterop(it.directives)
+  }
+  configureTestDataLibrary(TestDataLibraries.jakartaInterop) {
+    MetroDirectives.enableGuiceAnnotations(it.directives)
+  }
+  configureTestDataLibrary(TestDataLibraries.hiltCore) {
+    MetroDirectives.enableHilt(it.directives)
+  }
+  configureTestDataLibrary(TestDataLibraries.circuit) {
+    MetroDirectives.ENABLE_CIRCUIT in it.directives
+  }
   useAdditionalSourceProviders(::Ksp2AdditionalSourceProvider)
   useAfterAnalysisCheckers(::MetroReportsChecker)
 }
@@ -167,7 +183,7 @@ class MetroExtensionRegistrarConfigurator(
       val reportsDir =
         module.directives.singleOrZeroValue(MetroDirectives.REPORTS_DESTINATION)
           ?: if (module.directives[MetroDirectives.CHECK_REPORTS].isNotEmpty()) {
-            MetroReportsChecker.DEFAULT_REPORTS_DIR
+            DEFAULT_REPORTS_DIR
           } else {
             null
           }
@@ -179,7 +195,7 @@ class MetroExtensionRegistrarConfigurator(
       val tracesDir =
         module.directives.singleOrZeroValue(MetroDirectives.TRACE_DESTINATION)
           ?: if (MetroDirectives.CHECK_TRACES in module.directives) {
-            MetroReportsChecker.DEFAULT_TRACES_DIR
+            DEFAULT_TRACES_DIR
           } else {
             null
           }
@@ -262,138 +278,144 @@ class MetroExtensionRegistrarConfigurator(
 
     val classIds = ClassIds.fromOptions(options)
     val traceContext = TraceContext(options)
-    FirExtensionRegistrarAdapter.registerExtension(
-      MetroFirExtensionRegistrar(
-        classIds = classIds,
-        options = options,
-        isIde = false,
-        compatContext = compatContext,
-        traceContext = traceContext,
-        loadExternalDeclarationExtensions = { session, options, compatContext ->
-          buildList {
-            add(GenerateImplExtension.Factory().create(session, options, compatContext))
-            add(
-              GenerateProvidesContributionExtension.Factory()
-                .create(session, options, compatContext)
-            )
-            add(
-              GenerateBindsContributionExtension.Factory().create(session, options, compatContext)
-            )
-            add(GenerateDependencyGraphExtension.Factory().create(session, options, compatContext))
-            add(GenerateGraphExtensionExtension.Factory().create(session, options, compatContext))
-            add(GenerateProvidesInGraphExtension.Factory().create(session, options, compatContext))
-            if (options.enableCircuitCodegen) {
-              CircuitFirExtension.Factory().create(session, options, compatContext)?.let(::add)
-            }
-            if (options.enableHiltInterop) {
-              HiltFirDeclarationExtension.Factory()
-                .create(session, options, compatContext)
-                ?.let(::add)
-            }
-          }
-        },
-        loadExternalContributionHintExtensions = { session, options, compatContext ->
-          buildList {
-            addAll(
-              listOfNotNull(
-                GenerateProvidesContributionExtension.Factory()
-                  .create(session, options, compatContext) as? MetroContributionHintExtension,
-                GenerateBindsContributionExtension.Factory().create(session, options, compatContext)
-                  as? MetroContributionHintExtension,
-                GenerateGraphExtensionExtension.Factory().create(session, options, compatContext)
-                  as? MetroContributionHintExtension,
-              )
-            )
-            if (options.enableCircuitCodegen && !options.generateClassesInIr) {
+    with(compatContext) {
+      registerFirExtensionCompat(
+        MetroFirExtensionRegistrar(
+          classIds = classIds,
+          options = options,
+          isIde = false,
+          compatContext = compatContext,
+          traceContext = traceContext,
+          loadExternalDeclarationExtensions = { session, options, compatContext ->
+            buildList {
+              add(GenerateImplExtension.Factory().create(session, options, compatContext))
               add(
-                CircuitFirExtension.Factory().create(session, options, compatContext)!!
-                  as MetroContributionHintExtension
+                GenerateProvidesContributionExtension.Factory()
+                  .create(session, options, compatContext)
               )
+              add(
+                GenerateBindsContributionExtension.Factory().create(session, options, compatContext)
+              )
+              add(
+                GenerateDependencyGraphExtension.Factory().create(session, options, compatContext)
+              )
+              add(GenerateGraphExtensionExtension.Factory().create(session, options, compatContext))
+              add(
+                GenerateProvidesInGraphExtension.Factory().create(session, options, compatContext)
+              )
+              if (options.enableCircuitCodegen) {
+                CircuitFirExtension.Factory().create(session, options, compatContext)?.let(::add)
+              }
+              if (options.enableHiltInterop) {
+                HiltFirDeclarationExtension.Factory()
+                  .create(session, options, compatContext)
+                  ?.let(::add)
+              }
             }
-            if (options.enableHiltInterop) {
-              HiltFirDeclarationExtension.HintFactory()
-                .create(session, options, compatContext)
-                ?.let(::add)
+          },
+          loadExternalContributionHintExtensions = { session, options, compatContext ->
+            buildList {
+              addAll(
+                listOfNotNull(
+                  GenerateProvidesContributionExtension.Factory()
+                    .create(session, options, compatContext) as? MetroContributionHintExtension,
+                  GenerateBindsContributionExtension.Factory()
+                    .create(session, options, compatContext) as? MetroContributionHintExtension,
+                  GenerateGraphExtensionExtension.Factory().create(session, options, compatContext)
+                    as? MetroContributionHintExtension,
+                )
+              )
+              if (options.enableCircuitCodegen && !options.generateClassesInIr) {
+                add(
+                  CircuitFirExtension.Factory().create(session, options, compatContext)!!
+                    as MetroContributionHintExtension
+                )
+              }
+              if (options.enableHiltInterop) {
+                HiltFirDeclarationExtension.HintFactory()
+                  .create(session, options, compatContext)
+                  ?.let(::add)
+              }
             }
-          }
-        },
-        loadExternalContributionExtensions = { session, options, compatContext ->
-          buildList {
-            add(GenerateImplContributionExtension.Factory().create(session, options, compatContext))
-            add(
-              GenerateProvidesContributionMetroExtension.Factory()
-                .create(session, options, compatContext)
-            )
-            add(
-              GenerateBindsContributionMetroExtension.Factory()
-                .create(session, options, compatContext)
-            )
-            add(
-              GenerateGraphExtensionContributionExtension.Factory()
-                .create(session, options, compatContext)
-            )
-            if (options.enableCircuitCodegen && !options.generateClassesInIr) {
-              add(CircuitContributionExtension.Factory().create(session, options, compatContext)!!)
+          },
+          loadExternalContributionExtensions = { session, options, compatContext ->
+            buildList {
+              add(
+                GenerateImplContributionExtension.Factory().create(session, options, compatContext)
+              )
+              add(
+                GenerateProvidesContributionMetroExtension.Factory()
+                  .create(session, options, compatContext)
+              )
+              add(
+                GenerateBindsContributionMetroExtension.Factory()
+                  .create(session, options, compatContext)
+              )
+              add(
+                GenerateGraphExtensionContributionExtension.Factory()
+                  .create(session, options, compatContext)
+              )
+              if (options.enableCircuitCodegen && !options.generateClassesInIr) {
+                add(
+                  CircuitContributionExtension.Factory().create(session, options, compatContext)!!
+                )
+              }
+              if (options.enableHiltInterop) {
+                HiltContributionExtension.Factory()
+                  .create(session, options, compatContext)
+                  ?.let(::add)
+              }
             }
-            if (options.enableHiltInterop) {
-              HiltContributionExtension.Factory()
-                .create(session, options, compatContext)
-                ?.let(::add)
-            }
-          }
-        },
+          },
+        )
       )
-    )
-    if (options.enableCircuitCodegen) {
-      FirExtensionRegistrarAdapter.registerExtension(ComposeFirExtensionRegistrar())
-      if (options.generateClassesInIr) {
-        IrGenerationExtension.registerExtension(
-          CircuitIrDeclarationGenerationExtension.create(
+      if (options.enableCircuitCodegen) {
+        registerFirExtensionCompat(ComposeFirExtensionRegistrar())
+        if (options.generateClassesInIr) {
+          registerIrExtensionCompat(
+            CircuitIrDeclarationGenerationExtension.create(
+              classIds = classIds,
+              compatContext = compatContext,
+            )
+          )
+        }
+        registerIrExtensionCompat(
+          CircuitIrExtension.create(
+            generateClassesInIr = options.generateClassesInIr,
             classIds = classIds,
             compatContext = compatContext,
           )
         )
       }
-      IrGenerationExtension.registerExtension(
-        CircuitIrExtension.create(
-          generateClassesInIr = options.generateClassesInIr,
+      registerIrExtensionCompat(GenerateImplIrExtension())
+      registerIrExtensionCompat(GenerateProvidesContributionIrExtension())
+      registerIrExtensionCompat(GenerateProvidersInGraphIrExtension())
+      registerIrExtensionCompat(
+        MetroIrGenerationExtension(
+          messageCollector = with(compatContext) { configuration.messageCollectorCompat() },
           classIds = classIds,
+          options = options,
+          // TODO ever support this in tests?
+          lookupTracker = null,
+          expectActualTracker = ExpectActualTracker.DoNothing,
           compatContext = compatContext,
+          traceContext = traceContext,
         )
       )
-    }
-    IrGenerationExtension.registerExtension(GenerateImplIrExtension())
-    IrGenerationExtension.registerExtension(GenerateProvidesContributionIrExtension())
-    IrGenerationExtension.registerExtension(GenerateProvidersInGraphIrExtension())
-    IrGenerationExtension.registerExtension(
-      MetroIrGenerationExtension(
-        messageCollector = with(compatContext) { configuration.messageCollectorCompat() },
-        classIds = classIds,
-        options = options,
-        // TODO ever support this in tests?
-        lookupTracker = null,
-        expectActualTracker = ExpectActualTracker.DoNothing,
-        compatContext = compatContext,
-        traceContext = traceContext,
-      )
-    )
-    if (options.enableCircuitCodegen) {
-      IrGenerationExtension.registerExtension(
-        ComposePluginRegistrar.createComposeIrExtension(configuration)
-      )
+      if (options.enableCircuitCodegen) {
+        registerIrExtensionCompat(ComposePluginRegistrar.createComposeIrExtension(configuration))
+      }
     }
   }
 }
 
 private val MIN_KOTLIN_VERSION_FOR_JS_FIR_CONTRIBUTION_HINTS = KotlinToolingVersion("2.3.21")
 
-private val TEST_COMPILER_TOOLING_VERSION = KotlinToolingVersion(TEST_COMPILER_VERSION)
-
 private fun TestServices.shouldGenerateContributionHintsInFirForBackend(): Boolean {
   return when (defaultsProvider.targetBackend) {
     TargetBackend.JS_IR,
     TargetBackend.JS_IR_ES6 -> {
-      TEST_COMPILER_TOOLING_VERSION >= MIN_KOTLIN_VERSION_FOR_JS_FIR_CONTRIBUTION_HINTS
+      TEST_COMPILER_VERSION >= MIN_KOTLIN_VERSION_FOR_JS_FIR_CONTRIBUTION_HINTS
     }
     else -> false
   }

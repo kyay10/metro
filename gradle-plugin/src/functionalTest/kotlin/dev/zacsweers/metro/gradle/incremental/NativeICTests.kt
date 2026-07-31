@@ -4,11 +4,11 @@ package dev.zacsweers.metro.gradle.incremental
 
 import com.autonomousapps.kit.gradle.Dependency.Companion.implementation
 import com.google.common.truth.Truth.assertThat
-import dev.zacsweers.metro.gradle.KmpTarget
-import dev.zacsweers.metro.gradle.KotlinToolingVersion
 import dev.zacsweers.metro.gradle.MetroProject
-import dev.zacsweers.metro.gradle.getTestCompilerToolingVersion
 import org.gradle.testkit.runner.TaskOutcome
+import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.KmpTarget
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerToolingVersion
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
@@ -24,7 +24,10 @@ class NativeICTests : BaseIncrementalCompilationTest(KmpTarget.NATIVE_HOST) {
     )
 
     val fixture =
-      object : MetroProject(additionalGradleProperties = listOf("kotlin.incremental.native=true")) {
+      object : MetroProject() {
+        override val extraGradleProperties: List<String> =
+          super.extraGradleProperties + "kotlin.incremental.native=true"
+
         override fun buildGradleProject() = multiModuleProject {
           root {
             sources(appGraphAndMain)

@@ -7,14 +7,15 @@ import com.autonomousapps.kit.gradle.Dependency.Companion.implementation
 import com.autonomousapps.kit.gradle.Plugin
 import com.google.common.truth.Truth.assertThat
 import dev.zacsweers.metro.gradle.GradlePlugins
-import dev.zacsweers.metro.gradle.KmpTarget
-import dev.zacsweers.metro.gradle.KotlinToolingVersion
 import dev.zacsweers.metro.gradle.MetroProject
 import dev.zacsweers.metro.gradle.getTestCircuitVersion
-import dev.zacsweers.metro.gradle.getTestCompilerToolingVersion
-import dev.zacsweers.metro.gradle.getTestCompilerVersion
-import dev.zacsweers.metro.gradle.invokeMain
 import org.gradle.testkit.runner.TaskOutcome
+import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.KmpTarget
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.KotlinPlugins
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.invokeMain
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
@@ -88,13 +89,13 @@ class CircuitMirrorRemovalIcTests : BaseIncrementalCompilationTest(KmpTarget.JVM
         override fun buildGradleProject() = multiModuleProject {
           root {
             sources(graphAndMain)
-            plugins(GradlePlugins.Kotlin.jvm(), composePlugin, GradlePlugins.metro)
+            plugins(KotlinPlugins.jvm(), composePlugin, GradlePlugins.metro)
             dependencies(implementation(":feature"), circuitRuntime, circuitAnnotations)
             buildScript { withKotlin(metroConfig) }
           }
           subproject("feature") {
             sources(presenters)
-            plugins(GradlePlugins.Kotlin.jvm(), composePlugin, GradlePlugins.metro)
+            plugins(KotlinPlugins.jvm(), composePlugin, GradlePlugins.metro)
             dependencies(circuitRuntime, circuitAnnotations)
             buildScript { withKotlin(metroConfig) }
           }
@@ -114,7 +115,6 @@ class CircuitMirrorRemovalIcTests : BaseIncrementalCompilationTest(KmpTarget.JVM
         classScreen = "UpdatedClassScreen",
         functionScreen = "UpdatedFunctionScreen",
       ),
-      sourceSet = "main",
     )
 
     val secondBuild = build(project.rootDir, ":compileKotlin")

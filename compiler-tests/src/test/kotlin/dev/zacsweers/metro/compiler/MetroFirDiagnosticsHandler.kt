@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.test.services.assertions
 import org.jetbrains.kotlin.test.services.moduleStructure
 import org.jetbrains.kotlin.test.services.sourceFileProvider
 import org.jetbrains.kotlin.test.utils.MultiModuleInfoDumper
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
 /**
  * Drop-in replacement for [FirDiagnosticsHandler] that asserts the full-text diagnostics dump
@@ -58,7 +59,7 @@ class MetroFirDiagnosticsHandler(testServices: TestServices) : FirAnalysisHandle
     val perFile = testServices.firDiagnosticCollectorService.getFrontendDiagnosticsForModule(info)
     for (part in info.partsForDependsOnModules) {
       for (file in part.module.files) {
-        val firFile = mainFirFilesCompat(info)[file] ?: continue
+        val firFile = info.mainFirFilesByTestFile[file] ?: continue
         val diagnostics = perFile[firFile].map { it.diagnostic }
         val rendered = renderDiagnosticsAsLineColumn(diagnostics, file) ?: continue
         dumper.builderForModule(module).appendLine(rendered)
@@ -108,7 +109,7 @@ class MetroFirDiagnosticsHandler(testServices: TestServices) : FirAnalysisHandle
                 is KtDiagnosticWithSource -> it.textRanges
                 is KtDiagnosticWithoutSource -> listOf(it.firstRange)
               },
-            severity = severityToStringCompat(it.severity),
+            severity = it.severity.toCompilerMessageSeverity().toString().toLowerCaseAsciiOnly(),
             message = it.renderMessage(),
           )
         }

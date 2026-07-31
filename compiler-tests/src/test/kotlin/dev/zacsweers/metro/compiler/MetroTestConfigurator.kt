@@ -2,17 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
-import dev.zacsweers.metro.compiler.compat.KotlinToolingVersion
 import dev.zacsweers.metro.compiler.test.BUILD_COMPILER_VERSION
-import dev.zacsweers.metro.compiler.test.COMPILER_TOOLING_VERSION
 import dev.zacsweers.metro.compiler.test.COMPILER_VERSION
 import dev.zacsweers.metro.compiler.test.TEST_COMPILER_VERSION
+import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
+import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.builders.RegisteredDirectivesBuilder
 import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
 import org.jetbrains.kotlin.test.directives.LanguageSettingsDirectives.OPT_IN
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.services.MetaTestConfigurator
 import org.jetbrains.kotlin.test.services.TestServices
+import org.jetbrains.kotlin.test.services.defaultsProvider
 import org.jetbrains.kotlin.test.services.moduleStructure
 import org.jetbrains.kotlin.test.services.testInfo
 
@@ -32,9 +33,7 @@ class MetroTestConfigurator(testServices: TestServices) : MetaTestConfigurator(t
       return true
     }
 
-    if (
-      testServices.isJsBackend() && TEST_COMPILER_TOOLING_VERSION < BUILD_COMPILER_TOOLING_VERSION
-    ) {
+    if (testServices.isJsBackend() && TEST_COMPILER_VERSION < BUILD_COMPILER_VERSION) {
       // JS box tests compile against Metro's runtime KLIB. KLIB compatibility depends on the
       // producing compiler, so only run these tests against the compiler version that built it or
       // higher
@@ -42,8 +41,10 @@ class MetroTestConfigurator(testServices: TestServices) : MetaTestConfigurator(t
     }
 
     val jsDiagnosticSuite =
-      testServices.testInfo.className.substringAfterLast('.').substringBefore('$') ==
-        "JsDiagnosticTestGenerated"
+      testServices.testInfo.className
+        .substringAfterLast('.')
+        .substringBefore('$')
+        .endsWith("JsDiagnosticTestGenerated")
     if (testServices.isJsBackend() && jsDiagnosticSuite) {
       val rendersIrDiagnostics = DiagnosticsDirectives.RENDER_IR_DIAGNOSTICS_FULL_TEXT in directives
       val usesJvmInteropDependencies =
@@ -81,7 +82,7 @@ class MetroTestConfigurator(testServices: TestServices) : MetaTestConfigurator(t
       irOnlyClassesSuite &&
         shouldSkipForCompilerVersion(
           compilerVersion = COMPILER_VERSION,
-          compilerToolingVersion = KotlinToolingVersion(COMPILER_TOOLING_VERSION),
+          compilerToolingVersion = TEST_COMPILER_VERSION,
           minVersion = MIN_IR_ONLY_CLASSES_COMPILER_VERSION,
         )
     ) {
@@ -95,7 +96,7 @@ class MetroTestConfigurator(testServices: TestServices) : MetaTestConfigurator(t
     }
     return shouldSkipForCompilerVersion(
       compilerVersion = COMPILER_VERSION,
-      compilerToolingVersion = KotlinToolingVersion(COMPILER_TOOLING_VERSION),
+      compilerToolingVersion = TEST_COMPILER_VERSION,
       targetVersion = directives[MetroDirectives.COMPILER_VERSION].firstOrNull(),
       minVersion =
         directives[MetroDirectives.MIN_COMPILER_VERSION].maxByOrNull {
@@ -147,9 +148,6 @@ class MetroTestConfigurator(testServices: TestServices) : MetaTestConfigurator(t
   }
 }
 
-private val BUILD_COMPILER_TOOLING_VERSION = KotlinToolingVersion(BUILD_COMPILER_VERSION)
-private val TEST_COMPILER_TOOLING_VERSION = KotlinToolingVersion(TEST_COMPILER_VERSION)
-
 fun RegisteredDirectivesBuilder.commonMetroTestDirectives() {
   OPT_IN.with("dev.zacsweers.metro.ExperimentalMetroApi")
   OPT_IN.with("dev.zacsweers.metro.ExperimentalMetroCoroutinesApi")
@@ -183,4 +181,9 @@ private fun toolingVersionDirective(versionString: String): Pair<KotlinToolingVe
   val parts = versionPart.split('.')
   val requiresFullMatch = parts.size == 3
   return KotlinToolingVersion(versionString) to requiresFullMatch
+}
+
+private fun TestServices.isJsBackend(): Boolean {
+  val targetBackend = defaultsProvider.targetBackend
+  return targetBackend == TargetBackend.JS_IR || targetBackend == TargetBackend.JS_IR_ES6
 }

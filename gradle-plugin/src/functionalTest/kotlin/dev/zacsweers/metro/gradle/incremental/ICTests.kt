@@ -12,21 +12,21 @@ import com.autonomousapps.kit.gradle.Dependency.Companion.implementation
 import com.autonomousapps.kit.gradle.Plugin
 import com.google.common.truth.Truth.assertThat
 import dev.zacsweers.metro.gradle.GradlePlugins
-import dev.zacsweers.metro.gradle.KmpTarget
-import dev.zacsweers.metro.gradle.KotlinToolingVersion
 import dev.zacsweers.metro.gradle.MetroOptionOverrides
 import dev.zacsweers.metro.gradle.MetroProject
-import dev.zacsweers.metro.gradle.buildAndAssertThat
-import dev.zacsweers.metro.gradle.classLoader
-import dev.zacsweers.metro.gradle.cleanOutputLine
-import dev.zacsweers.metro.gradle.getTestCompilerToolingVersion
-import dev.zacsweers.metro.gradle.getTestCompilerVersion
 import dev.zacsweers.metro.gradle.getTestOmitRedundantMirrorsOverride
-import dev.zacsweers.metro.gradle.invokeMain
-import dev.zacsweers.metro.gradle.source
 import java.io.File
 import java.net.URLClassLoader
 import org.gradle.testkit.runner.TaskOutcome
+import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.KmpTarget
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.KotlinPlugins
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.buildAndAssertThat
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.classLoader
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.cleanOutputLine
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.invokeMain
 import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
@@ -2261,7 +2261,7 @@ class ICTests(target: KmpTarget) : BaseIncrementalCompilationTest(target) {
               sources = projectSources
               withBuildScript {
                 plugins(
-                  GradlePlugins.Kotlin.multiplatform(),
+                  KotlinPlugins.multiplatform(),
                   GradlePlugins.agpKmp,
                   GradlePlugins.metro,
                 )
@@ -2966,13 +2966,13 @@ class ICTests(target: KmpTarget) : BaseIncrementalCompilationTest(target) {
         override fun buildGradleProject() = multiModuleProject {
           root {
             sources(graphAndMain)
-            plugins(GradlePlugins.Kotlin.jvm(), composePlugin, GradlePlugins.metro)
+            plugins(KotlinPlugins.jvm(), composePlugin, GradlePlugins.metro)
             dependencies(implementation(":feature"))
             buildScript { withKotlin(composeRuntimeDependency) }
           }
           subproject("feature") {
             sources(featureTypes, assistedViewModel)
-            plugins(GradlePlugins.Kotlin.jvm(), composePlugin, GradlePlugins.metro)
+            plugins(KotlinPlugins.jvm(), composePlugin, GradlePlugins.metro)
             buildScript { withKotlin(composeRuntimeDependency) }
           }
         }
@@ -3105,7 +3105,6 @@ class ICTests(target: KmpTarget) : BaseIncrementalCompilationTest(target) {
       }
       """
         .trimIndent(),
-      sourceSet = "main",
     )
 
     val secondBuildResult = build(project.rootDir, ":compileKotlin")

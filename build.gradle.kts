@@ -14,7 +14,6 @@ plugins {
   alias(libs.plugins.binaryCompatibilityValidator)
   alias(libs.plugins.poko) apply false
   alias(libs.plugins.wire) apply false
-  alias(libs.plugins.testkit) apply false
   id("metro.yarnNode")
 }
 
@@ -42,11 +41,6 @@ apiValidation {
     add("metro-common")
     add("compiler-tests")
     add("compiler-compat")
-    layout.projectDirectory.dir("compiler-compat").asFile.listFiles()!!.forEach {
-      if (it.isDirectory && it.name.startsWith("k") && File(it, "version.txt").exists()) {
-        add(it.name)
-      }
-    }
   }
   ignoredPackages += metroApiIgnoredPackages
   nonPublicMarkers += metroApiNonPublicMarkers
@@ -64,10 +58,6 @@ dokka {
     outputDirectory.set(rootDir.resolve("docs/api"))
     includes.from(project.layout.projectDirectory.file("README.md"))
   }
-}
-
-tasks.register("installForFunctionalTest") {
-  description = "Publishes all Metro artifacts to build/functionalTestRepo"
 }
 
 subprojects {

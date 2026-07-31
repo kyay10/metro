@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
+import dev.zacsweers.metro.compiler.MetroCompilerPluginRegistrar.Companion.isIde
 import dev.zacsweers.metro.compiler.circuit.CircuitIrDeclarationGenerationExtension
 import dev.zacsweers.metro.compiler.circuit.CircuitIrExtension
 import dev.zacsweers.metro.compiler.compat.CompatContext
-import dev.zacsweers.metro.compiler.compat.CompilerVersionAliases
-import dev.zacsweers.metro.compiler.compat.KotlinToolingVersion
 import dev.zacsweers.metro.compiler.fir.MetroFirExtensionRegistrar
 import dev.zacsweers.metro.compiler.ir.MetroIrGenerationExtension
 import dev.zacsweers.metro.compiler.tracing.TraceContext
@@ -14,13 +13,16 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import org.jetbrains.kotlin.compiler.plugin.devkit.DevKitCompilerPluginRegistrar
+import org.jetbrains.kotlin.compiler.plugin.devkit.DevKitComponentRegistrar
+import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
 
-public class MetroCompilerPluginRegistrar : CompilerPluginRegistrar() {
-
-  private companion object {
+public class MetroCompilerPluginRegistrar :
+  DevKitCompilerPluginRegistrar(MetroComponentRegistrar::class) {
+  companion object {
     val isIde by lazy {
       try {
         // Try to look up an IntelliJ-only class
@@ -36,24 +38,19 @@ public class MetroCompilerPluginRegistrar : CompilerPluginRegistrar() {
 
   override val supportsK2: Boolean
     get() = true
+}
 
-  override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
+public class MetroComponentRegistrar : DevKitComponentRegistrar {
+  override fun CompilerPluginRegistrar.ExtensionStorage.registerExtensions(
+    configuration: CompilerConfiguration
+  ) {
     val options = MetroOptions.load(configuration)
 
     if (!options.enabled) return
 
     val version =
       options.compilerVersion?.let(::KotlinToolingVersion)
-        ?: CompatContext.Factory.loadCompilerVersionOrNull()?.let { rawVersion ->
-          CompilerVersionAliases.map(rawVersion, options.compilerVersionAliases)
-            ?: run {
-              System.err.println(
-                "[METRO] Skipping enabling Metro extensions in IDE. " +
-                  "Detected Kotlin version '$rawVersion' is not supported for IDE use (CLI_ONLY)."
-              )
-              return
-            }
-        }
+        ?: CompatContext.Factory.loadCompilerVersionOrNull()
 
     val enableFir = version != null || (isIde && options.forceEnableFirInIde)
 
@@ -67,7 +64,7 @@ public class MetroCompilerPluginRegistrar : CompilerPluginRegistrar() {
 
     val compatContext =
       try {
-        CompatContext.create(version)
+        CompatContext.create()
       } catch (t: Throwable) {
         System.err.println(
           "[METRO] Skipping enabling Metro extensions, unable to create CompatContext for version $version"
