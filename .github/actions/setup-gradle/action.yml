@@ -25,6 +25,14 @@ inputs:
       when the caller uses the default Kotlin from libs.versions.toml.
     required: false
     default: ''
+  devKitSpaceUsername:
+    description: 'DevKitSpace username'
+    required: false
+    default: ''
+  devKitSpacePassword:
+    description: 'DevKitSpace password'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -37,6 +45,9 @@ runs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v6
+      env:
+        ORG_GRADLE_PROJECT_devKitSpaceUsername: ${{ inputs.devKitSpaceUsername }}
+        ORG_GRADLE_PROJECT_devKitSpacePassword: ${{ inputs.devKitSpacePassword }}
       with:
         cache-read-only: ${{ inputs.cache-read-only }}
         cache-encryption-key: ${{ inputs.encryption-key }}

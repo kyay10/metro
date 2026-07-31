@@ -18,6 +18,10 @@ concurrency:
   group: 'ide-${{ github.head_ref || github.ref }}'
   cancel-in-progress: true
 
+env:
+  ORG_GRADLE_PROJECT_devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
+  ORG_GRADLE_PROJECT_devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
+
 jobs:
   generate-matrix:
     name: Generate IDE matrix
@@ -57,6 +61,8 @@ jobs:
           encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
           konan: true
+          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
+          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Publish Metro to functionalTestRepo
         run: ./gradlew :installForFunctionalTest --quiet
@@ -109,6 +115,8 @@ jobs:
             with:
               encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
               cache-read-only: true
+              devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
+              devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
           - name: Install aria2 and xvfb
             run: |
