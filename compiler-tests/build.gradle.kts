@@ -47,9 +47,7 @@ pluginDevKit {
   // lowest 2.4.20 dev version we support
   val k2420Target = testAgainstWithFixtures("2.4.20-dev-3583")
   testAgainst("2.4.20-Beta1") { sourceFixturesFrom(k2420Target) }
-  // version where DUMP_CLASSIFIER was added
-  val testDumpDirectiveTarget = testAgainstWithFixtures("2.4.20-dev-7885")
-  testAgainst("2.4.20-Beta2") { sourceFixturesFrom(testDumpDirectiveTarget) }
+  testAgainst("2.4.20-Beta2") { sourceFixturesFrom(k2420Target) }
 
   defaultTestVersion(
     providers.gradleProperty("metro.testCompilerVersion").getOrElse(libs.versions.kotlin.get())
