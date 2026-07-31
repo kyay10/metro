@@ -65,7 +65,7 @@ jobs:
           devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Publish Metro to functionalTestRepo
-        run: ./gradlew :installForFunctionalTest --quiet
+        run: ./gradlew :gradle-plugin:installForFunctionalTest --quiet
 
       - name: Upload Metro artifacts
         uses: actions/upload-artifact@v7
