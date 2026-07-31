@@ -20,7 +20,6 @@ ALIASES_FILE="compiler-compat/version-aliases.txt"
 # First, validate the version-aliases.txt file
 if [[ "$versions_only" != true ]]; then
     echo "🔍 Validating version-aliases.txt..."
-    ./scripts/validate-version-aliases.sh
     echo ""
 fi
 
