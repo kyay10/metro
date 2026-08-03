@@ -62,20 +62,18 @@ pluginDevKit {
       "2.4.20-Beta2",
       "2.5.0-dev-498",
     )
-  versions.forEachIndexed { i, version ->
-    developFor(version) {
-      main {
-        // TODO this could be default behavior
-        for (lower in versions.subList(0, i)) dependOn(developFor.named(lower).flatMap { it.main })
+  kotlin.target.compilations {
+    developFor(versions.first())
+    versions.windowed(2) { (prev, version) ->
+      developFor(version) {
+        main {
+          // TODO this could be default behavior
+          val compilation = getByName(name)
+          val prevCompilation = getByName(developFor.getByName(prev).main.name)
+          compilation.associateWith(prevCompilation)
+          compilation.output.classesDirs.from(prevCompilation.output.classesDirs)
+        }
       }
     }
   }
-}
-
-fun SourceSet.dependOn(other: Provider<SourceSet>) {
-  val otherClasses = other.map { it.output.classesDirs }
-  dependencies {
-    compileOnlyConfigurationName(files(otherClasses))
-  }
-  output.dir(otherClasses)
 }
