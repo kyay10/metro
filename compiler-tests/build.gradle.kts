@@ -58,14 +58,10 @@ pluginDevKit {
 // each `<version>Test` suite reports its own pinned version at runtime rather than a single
 // global value.
 pluginDevKit.testAgainst.configureEach {
-  testSuite {
-    targets.all {
-      testTask {
-        systemProperty("metro.test.compilerVersion", version.toString())
-        systemProperty("metro.test.jvmTarget", libs.versions.jvmTarget.get())
-        systemProperty("metro.test.buildCompilerVersion", libs.versions.kotlin.get())
-      }
-    }
+  testTask {
+    systemProperty("metro.test.compilerVersion", version.toString())
+    systemProperty("metro.test.jvmTarget", libs.versions.jvmTarget.get())
+    systemProperty("metro.test.buildCompilerVersion", libs.versions.kotlin.get())
   }
 }
 

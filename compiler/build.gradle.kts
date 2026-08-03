@@ -235,9 +235,9 @@ dependencies {
   testImplementation(libs.kotlin.aptEmbeddable)
   testImplementation("dev.zacsweers.kctfork:core:0.13.0")
   testImplementation("dev.zacsweers.kctfork:ksp:0.13.0")
-  pluginDevKit.testAgainst.configureEach {
-    testSuite {
-      sources {
+  pluginDevKit {
+    testAgainst.configureEach {
+      test {
         if (version.major == 2 && version.minor == 4) {
           implementationConfigurationName("dev.zacsweers.kctfork:core:0.13.0")
           implementationConfigurationName("dev.zacsweers.kctfork:ksp:0.13.0")
