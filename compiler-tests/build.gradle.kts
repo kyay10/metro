@@ -20,6 +20,7 @@ sourceSets {
   }
   test {
     kotlin.setSrcDirs(emptyList<Any?>())
+    java.setSrcDirs(emptyList<Any?>())
   }
 }
 
@@ -112,7 +113,7 @@ dependencies {
 
   testFixturesApi(project(":compiler"))
   testFixturesApi(project(":compiler-compat"))
-  testFixturesCompileOnlyApi(project(":metro-common"))
+  testFixturesCompileOnly(project(":metro-common"))
 
   testFixturesRuntimeOnly(libs.ksp.symbolProcessing)
   testFixturesApi(libs.ksp.symbolProcessing.aaEmbeddable)
@@ -188,5 +189,5 @@ tasks.withType<Test> {
   systemProperty("metro.shortLocations", "true")
   testOmitRedundantMirrors?.let { systemProperty("metro.testOmitRedundantMirrors", it) }
 
-  setClasspathProperty("ksp.testRuntimeClasspath", configurations.testRuntimeClasspath)
+  setClasspathProperty("ksp.testRuntimeClasspath", configurations.testFixturesRuntimeClasspath)
 }
