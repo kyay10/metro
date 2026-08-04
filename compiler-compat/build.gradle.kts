@@ -1,7 +1,7 @@
 // Copyright (C) 2025 Zac Sweers
 // SPDX-License-Identifier: Apache-2.0
 plugins {
-  alias(libs.plugins.kotlin.jvm)
+  alias(libs.plugins.kotlin.multiplatform)
   pluginDevKit("compiler-plugin")
   id("metro.publish")
 }
@@ -41,8 +41,14 @@ buildConfig {
   )
 }
 
-dependencies {
-  testImplementation(libs.truth)
+kotlin {
+  sourceSets {
+    jvmTest {
+      dependencies {
+        implementation(libs.truth)
+      }
+    }
+  }
 }
 
 // ignore tests provided by devkit
@@ -62,20 +68,18 @@ pluginDevKit {
       "2.4.20-Beta2",
       "2.5.0-dev-498",
     )
-  versions.forEachIndexed { i, version ->
-    developFor(version) {
-      main {
-        // TODO this could be default behavior
-        for (lower in versions.subList(0, i)) dependOn(developFor.named(lower).flatMap { it.main })
+  kotlin.jvm().compilations {
+    developFor(versions.first())
+    versions.windowed(2) { (prev, version) ->
+      developFor(version) {
+        main {
+          // TODO this could be default behavior
+          val compilation = getByName(versionName)
+          val prevCompilation = getByName(developFor.getByName(prev).versionName)
+          compilation.associateWith(prevCompilation)
+          compilation.output.classesDirs.from(prevCompilation.output.classesDirs)
+        }
       }
     }
   }
-}
-
-fun SourceSet.dependOn(other: Provider<SourceSet>) {
-  val otherClasses = other.map { it.output.classesDirs }
-  dependencies {
-    compileOnlyConfigurationName(files(otherClasses))
-  }
-  output.dir(otherClasses)
 }
