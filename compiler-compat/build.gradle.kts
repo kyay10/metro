@@ -1,7 +1,7 @@
 // Copyright (C) 2025 Zac Sweers
 // SPDX-License-Identifier: Apache-2.0
 plugins {
-  alias(libs.plugins.kotlin.jvm)
+  alias(libs.plugins.kotlin.multiplatform)
   pluginDevKit("compiler-plugin")
   id("metro.publish")
 }
@@ -41,8 +41,14 @@ buildConfig {
   )
 }
 
-dependencies {
-  testImplementation(libs.truth)
+kotlin {
+  sourceSets {
+    jvmTest {
+      dependencies {
+        implementation(libs.truth)
+      }
+    }
+  }
 }
 
 // ignore tests provided by devkit
@@ -62,14 +68,14 @@ pluginDevKit {
       "2.4.20-Beta2",
       "2.5.0-dev-498",
     )
-  kotlin.target.compilations {
+  kotlin.jvm().compilations {
     developFor(versions.first())
     versions.windowed(2) { (prev, version) ->
       developFor(version) {
         main {
           // TODO this could be default behavior
-          val compilation = getByName(name)
-          val prevCompilation = getByName(developFor.getByName(prev).main.name)
+          val compilation = getByName(versionName)
+          val prevCompilation = getByName(developFor.getByName(prev).versionName)
           compilation.associateWith(prevCompilation)
           compilation.output.classesDirs.from(prevCompilation.output.classesDirs)
         }
