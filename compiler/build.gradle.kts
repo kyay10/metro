@@ -19,7 +19,7 @@ buildscript {
 }
 
 plugins {
-  alias(libs.plugins.kotlin.jvm)
+  alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.kotlin.plugin.serialization)
   alias(libs.plugins.poko)
   pluginDevKit("compiler-plugin")
@@ -104,11 +104,16 @@ dependencies {
   diagnosticsDocsRuntime(libs.kotlin.compiler)
 }
 
+val mainRuntimeClasspath =
+  configurations.getByName(
+    kotlin.jvm().compilations.getByName("main").runtimeDependencyConfigurationName
+  )
+
 val generateDiagnosticsDocs =
   tasks.register<JavaExec>("generateDiagnosticsDocs") {
     group = "documentation"
     description = "Generates docs/diagnostics.md from the MetroErrorCode registry."
-    classpath = sourceSets.main.get().runtimeClasspath + diagnosticsDocsRuntime
+    classpath = mainRuntimeClasspath + diagnosticsDocsRuntime
     mainClass.set("dev.zacsweers.metro.compiler.diagnostics.DiagnosticsDocGenerator")
     args(diagnosticsDocsFile.asFile.absolutePath)
   }
@@ -117,7 +122,7 @@ val checkDiagnosticsDocs =
   tasks.register<JavaExec>("checkDiagnosticsDocs") {
     group = "verification"
     description = "Verifies docs/diagnostics.md is up to date with the MetroErrorCode registry."
-    classpath = sourceSets.main.get().runtimeClasspath + diagnosticsDocsRuntime
+    classpath = mainRuntimeClasspath + diagnosticsDocsRuntime
     mainClass.set("dev.zacsweers.metro.compiler.diagnostics.DiagnosticsDocGenerator")
     args(diagnosticsDocsFile.asFile.absolutePath, "--check")
   }
@@ -189,8 +194,14 @@ tasks.shadowJar {
  * https://github.com/drewhamilton/Poko/blob/7bde5b23cc65a95a894e0ba0fb305704c49382f0/poko-gradle-plugin/src/main/kotlin/dev/drewhamilton/poko/gradle/PokoGradlePlugin.kt#L19
  */
 project.afterEvaluate {
-  configurations.named("implementation") {
-    dependencies.removeIf { it is ExternalDependency && it.group == "dev.drewhamilton.poko" }
+  kotlin {
+    sourceSets {
+      jvmMain {
+        configurations.named(implementationConfigurationName) {
+          dependencies.removeIf { it is ExternalDependency && it.group == "dev.drewhamilton.poko" }
+        }
+      }
+    }
   }
 }
 
@@ -213,50 +224,60 @@ pluginDevKit {
 dependencies {
   add(r8Libraries.name, libs.kotlin.stdlib)
   add(r8Libraries.name, libs.kotlin.reflect)
-  compileOnly(libs.kotlin.stdlib)
-  compileOnly(libs.poko.annotations)
+}
 
-  implementation(project(":metro-common"))
-  implementation(project(":runtime"))
-  implementation(libs.androidx.collection)
-  implementation(libs.androidx.tracing.wire)
-  implementation(libs.picnic)
-  implementation(libs.mordant.core)
-  implementation(libs.kotlinx.serialization.json)
-  implementation(project(":compiler-compat"))
+kotlin {
+  sourceSets {
+    jvmMain.dependencies {
+      compileOnly(libs.kotlin.stdlib)
+      compileOnly(libs.poko.annotations)
+      implementation(project(":metro-common"))
+      implementation(project(":runtime"))
+      implementation(libs.androidx.collection)
+      implementation(libs.androidx.tracing.wire)
+      implementation(libs.picnic)
+      implementation(libs.mordant.core)
+      implementation(libs.kotlinx.serialization.json)
+      implementation(project(":compiler-compat"))
+    }
 
-  testCompileOnly(libs.poko.annotations)
+    jvmTest.dependencies {
+      compileOnly(libs.poko.annotations)
 
-  testImplementation(project(":interop-dagger"))
-  testImplementation(libs.kotlin.reflect)
-  testImplementation(libs.kotlin.stdlib)
+      implementation(project(":interop-dagger"))
+      implementation(libs.kotlin.reflect)
+      implementation(libs.kotlin.stdlib)
 
-  // Cover for https://github.com/tschuchortdev/kotlin-compile-testing/issues/274
-  testImplementation(libs.kotlin.aptEmbeddable)
-  testImplementation("dev.zacsweers.kctfork:core:0.13.0")
-  testImplementation("dev.zacsweers.kctfork:ksp:0.13.0")
-  pluginDevKit {
-    testAgainst.configureEach {
-      test {
-        if (version.major == 2 && version.minor == 4) {
-          implementationConfigurationName("dev.zacsweers.kctfork:core:0.13.0")
-          implementationConfigurationName("dev.zacsweers.kctfork:ksp:0.13.0")
-        } else {
-          implementationConfigurationName(libs.kct)
-          implementationConfigurationName(libs.kct.ksp)
+      // Cover for https://github.com/tschuchortdev/kotlin-compile-testing/issues/274
+      implementation(libs.kotlin.aptEmbeddable)
+      implementation("dev.zacsweers.kctfork:core:0.13.0")
+      implementation("dev.zacsweers.kctfork:ksp:0.13.0")
+      pluginDevKit {
+        testAgainst.configureEach {
+          test {
+            dependencies {
+              if (version.major == 2 && version.minor == 4) {
+                implementation("dev.zacsweers.kctfork:core:0.13.0")
+                implementation("dev.zacsweers.kctfork:ksp:0.13.0")
+              } else {
+                implementation(libs.kct)
+                implementation(libs.kct.ksp)
+              }
+            }
+          }
         }
       }
+      implementation(libs.okio)
+      implementation(libs.junit)
+      implementation(libs.kotlin.test)
+      implementation(libs.truth)
+      implementation(libs.coroutines)
+      implementation(libs.coroutines.test)
+      implementation(libs.dagger.compiler)
+      implementation(libs.dagger.runtime)
+      implementation(libs.anvil.annotations)
     }
   }
-  testImplementation(libs.okio)
-  testImplementation(libs.junit)
-  testImplementation(libs.kotlin.test)
-  testImplementation(libs.truth)
-  testImplementation(libs.coroutines)
-  testImplementation(libs.coroutines.test)
-  testImplementation(libs.dagger.compiler)
-  testImplementation(libs.dagger.runtime)
-  testImplementation(libs.anvil.annotations)
 }
 
 // Metro's compiler tests are JUnit 4 based: `kotlin.test.Test` maps to JUnit 4 and the shared

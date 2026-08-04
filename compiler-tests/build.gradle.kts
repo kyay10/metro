@@ -9,18 +9,16 @@ import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 import org.jetbrains.kotlin.tooling.core.toKotlinVersion
 
 plugins {
-  alias(libs.plugins.kotlin.jvm)
+  alias(libs.plugins.kotlin.multiplatform)
   pluginDevKit("compiler-plugin")
-  java
 }
 
-sourceSets {
-  testFixtures {
+kotlin.sourceSets {
+  jvmTestFixtures {
     kotlin.srcDir("src/test/kotlin")
   }
-  test {
+  jvmTest {
     kotlin.setSrcDirs(emptyList<Any?>())
-    java.setSrcDirs(emptyList<Any?>())
   }
 }
 
@@ -108,23 +106,27 @@ pluginDevKit.testDataLibraries {
   register("jakartaInterop") { jvm(project(":interop-jakarta")) }
 }
 
-dependencies {
-  testFixturesApi(kotlin("compose-compiler-plugin"))
+kotlin.sourceSets {
+  jvmTestFixtures {
+    dependencies {
+      api(kotlin("compose-compiler-plugin"))
 
-  testFixturesApi(project(":compiler"))
-  testFixturesApi(project(":compiler-compat"))
-  testFixturesCompileOnly(project(":metro-common"))
+      api(project(":compiler"))
+      api(project(":compiler-compat"))
+      compileOnly(project(":metro-common"))
 
-  testFixturesRuntimeOnly(libs.ksp.symbolProcessing)
-  testFixturesApi(libs.ksp.symbolProcessing.aaEmbeddable)
-  testFixturesApi(libs.ksp.symbolProcessing.commonDeps)
-  testFixturesApi(libs.ksp.symbolProcessing.api)
-  testFixturesApi(libs.dagger.compiler)
-  testFixturesApi(libs.hilt.compiler)
-  testFixturesApi(libs.hilt.core)
-  // Anvil KSP processors, only needs to be on the classpath at runtime since they're loaded via
-  // ServiceLoader
-  testFixturesRuntimeOnly(libs.anvil.kspCompiler)
+      runtimeOnly(libs.ksp.symbolProcessing)
+      api(libs.ksp.symbolProcessing.aaEmbeddable)
+      api(libs.ksp.symbolProcessing.commonDeps)
+      api(libs.ksp.symbolProcessing.api)
+      api(libs.dagger.compiler)
+      api(libs.hilt.compiler)
+      api(libs.hilt.core)
+      // Anvil KSP processors, only needs to be on the classpath at runtime since they're loaded
+      // via ServiceLoader
+      runtimeOnly(libs.anvil.kspCompiler)
+    }
+  }
 }
 
 val largeTestMode = providers.gradleProperty("metro.enableLargeTests").isPresent

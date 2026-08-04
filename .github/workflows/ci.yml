@@ -101,8 +101,8 @@ jobs:
       - name: Check root project
         run: |
           ./scripts/run-ci-gradle.sh check --continue --quiet \
-            -x :compiler:test \
-            -x :compiler-tests:test \
+            -x :compiler:jvmTest \
+            -x :compiler-tests:jvmTest \
             -x :gradle-plugin:functionalTest \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
@@ -161,7 +161,7 @@ jobs:
 
       - name: Test compiler
         run: |
-          ./scripts/run-ci-gradle.sh :compiler:test :compiler-tests:test --continue --quiet \
+          ./scripts/run-ci-gradle.sh :compiler:jvmTest :compiler-tests:jvmTest --continue --quiet \
             '-Pmetro.testCompilerVersion=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.excludeJsBoxTests \
@@ -223,7 +223,7 @@ jobs:
 
       - name: Test shaded compiler
         run: |
-          ./scripts/run-ci-gradle.sh :compiler-tests:test --quiet \
+          ./scripts/run-ci-gradle.sh :compiler-tests:jvmTest --quiet \
             -Pmetro.testJavaVersion=21 \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.compiler.ShadedCompilerTest.optional terminal providers initialize from the shaded compiler jar' \
@@ -279,7 +279,7 @@ jobs:
       - name: Run JS box smoke tests
         if: github.ref != 'refs/heads/main'
         run: |
-          ./gradlew :compiler-tests:test --quiet \
+          ./gradlew :compiler-tests:jvmTest --quiet \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Inject$Assisted.testBasicAssistedInject' \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Multibindings.testMapProviderLazyValues' \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Suspend.testMixedSuspendChain' \
@@ -296,7 +296,7 @@ jobs:
       - name: Run JS box tests
         if: github.ref == 'refs/heads/main'
         run: |
-          ./gradlew :compiler-tests:test --continue --quiet \
+          ./gradlew :compiler-tests:jvmTest --continue --quiet \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.JsFastInitBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.JsContributionProvidersBoxTestGenerated*'

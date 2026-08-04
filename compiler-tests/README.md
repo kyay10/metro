@@ -86,7 +86,7 @@ Tests that are expensive (large graphs, stress tests, etc.) should use the `Stre
 
 To run large tests locally:
 ```bash
-./gradlew :compiler-tests:test -Pmetro.enableLargeTests
+./gradlew :compiler-tests:jvmTest -Pmetro.enableLargeTests
 ```
 
 ### Reports
