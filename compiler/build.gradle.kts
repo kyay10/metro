@@ -32,8 +32,6 @@ plugins {
 
 tasks.generateTests { enabled = false }
 
-animalsniffer { ignore("org.*") }
-
 metroArtifact {
   artifactId.set("compiler")
   name.set("Metro Compiler")
@@ -137,38 +135,39 @@ val r8LibraryClasspath =
   configurations.resolvable("r8LibraryClasspath") { extendsFrom(r8Libraries) }
 
 tasks.shadowJar {
-  minimize {
-    exclude(dependency("dev.zacsweers.metro:compiler-compat.*:.*"))
-    exclude(dependency("dev.zacsweers.metro:metro-common:.*"))
-    r8 {
-      // Compat implementations receive callbacks from Kotlin compiler classes on the library
-      // classpath, so R8 cannot discover these usages itself.
-      keepRules.add(
-        """
-        -keep class dev.zacsweers.metro.compiler.compat.** { *; }
-        -keepattributes AnnotationDefault,EnclosingMethod,Exceptions,InnerClasses,RuntimeInvisibleAnnotations,RuntimeVisibleAnnotations,Signature
-        -dontwarn com.intellij.**
-        -dontwarn org.intellij.**
-        -dontwarn org.jetbrains.**
-        """
-          .trimIndent()
-      )
-      args.add("--no-minification")
-      // Extracted dependency rules and relocated signatures emit expected info diagnostics.
-      args.addAll(listOf("--map-diagnostics", "info", "none"))
-      args.addAll(
-        providers.provider {
-          r8LibraryClasspath
-            .get()
-            .files
-            .sortedBy { it.name }
-            .flatMap {
-              listOf("--lib", it.absolutePath)
-            }
-        }
-      )
-    }
-  }
+  //  minimize {
+  //    exclude(dependency("dev.zacsweers.metro:compiler-compat.*:.*"))
+  //    exclude(dependency("dev.zacsweers.metro:metro-common:.*"))
+  //    r8 {
+  //      // Compat implementations receive callbacks from Kotlin compiler classes on the library
+  //      // classpath, so R8 cannot discover these usages itself.
+  //      keepRules.add(
+  //        """
+  //        -keep class dev.zacsweers.metro.compiler.compat.** { *; }
+  //        -keepattributes
+  // AnnotationDefault,EnclosingMethod,Exceptions,InnerClasses,RuntimeInvisibleAnnotations,RuntimeVisibleAnnotations,Signature
+  //        -dontwarn com.intellij.**
+  //        -dontwarn org.intellij.**
+  //        -dontwarn org.jetbrains.**
+  //        """
+  //          .trimIndent()
+  //      )
+  //      args.add("--no-minification")
+  //      // Extracted dependency rules and relocated signatures emit expected info diagnostics.
+  //      args.addAll(listOf("--map-diagnostics", "info", "none"))
+  //      args.addAll(
+  //        providers.provider {
+  //          r8LibraryClasspath
+  //            .get()
+  //            .files
+  //            .sortedBy { it.name }
+  //            .flatMap {
+  //              listOf("--lib", it.absolutePath)
+  //            }
+  //        }
+  //      )
+  //    }
+  //  }
   // TODO these are relocated, do we need to/can we exclude these?
   //  exclude("META-INF/wire-runtime.kotlin_module")
   //  exclude("META-INF/okio.kotlin_module")
@@ -228,7 +227,7 @@ dependencies {
 
 kotlin {
   sourceSets {
-    jvmMain.dependencies {
+    commonMain.dependencies {
       compileOnly(libs.kotlin.stdlib)
       compileOnly(libs.poko.annotations)
       implementation(project(":metro-common"))
@@ -241,7 +240,7 @@ kotlin {
       implementation(project(":compiler-compat"))
     }
 
-    jvmTest.dependencies {
+    commonTest.dependencies {
       compileOnly(libs.poko.annotations)
 
       implementation(project(":interop-dagger"))

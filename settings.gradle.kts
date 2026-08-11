@@ -6,11 +6,7 @@ pluginManagement {
     mavenCentral()
     google()
     gradlePluginPortal()
-    maven {
-      name = "devKitSpace"
-      url = uri("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
-      credentials(PasswordCredentials::class)
-    }
+    maven("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
     mavenLocal()
   }
   plugins { id("com.gradle.develocity") version "4.5.0" }
@@ -20,11 +16,7 @@ dependencyResolutionManagement {
   repositories {
     mavenCentral()
     google()
-    maven {
-      name = "devKitSpace"
-      url = uri("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
-      credentials(PasswordCredentials::class)
-    }
+    maven("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
     mavenLocal()
   }
 }

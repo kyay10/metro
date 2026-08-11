@@ -104,7 +104,7 @@ add(lazyOption("my-new-option", extension.myNewOption))
 
 Note: The option name here must match the `name` in `RawMetroOption`.
 
-### 4. `compiler/src/test/kotlin/dev/zacsweers/metro/compiler/MetroCompilerTest.kt`
+### 4. `../../../compiler/src/commonTest/kotlin/dev/zacsweers/metro/compiler/MetroCompilerTest.kt`
 
 In `toPluginOptions()`, add handling for the new option:
 
