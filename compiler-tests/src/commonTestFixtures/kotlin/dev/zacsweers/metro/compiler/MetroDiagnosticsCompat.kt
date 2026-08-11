@@ -3,17 +3,10 @@
 package dev.zacsweers.metro.compiler
 
 import org.jetbrains.kotlin.diagnostics.KtDiagnostic
-import org.jetbrains.kotlin.test.FirParser
 import org.jetbrains.kotlin.test.backend.handlers.findByPath
 import org.jetbrains.kotlin.test.backend.ir.IrBackendInput
-import org.jetbrains.kotlin.test.builders.RegisteredDirectivesBuilder
-import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.model.TestFile
 import org.jetbrains.kotlin.test.services.TestServices
-
-expect fun RegisteredDirectivesBuilder.firIdenticalCompat()
-
-expect fun TestConfigurationBuilder.setupJvmPipelineSteps(parser: FirParser)
 
 // 2.3.21 dropped `diagnosticsByFilePath` for `diagnosticsByFile`. compileOnly is pinned to
 // 2.3.20

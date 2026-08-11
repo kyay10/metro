@@ -3,7 +3,6 @@
 @file:OptIn(ExperimentalWasmDsl::class)
 
 import org.jetbrains.kotlin.compiler.plugin.devkit.setClasspathProperty
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
@@ -21,19 +20,9 @@ val versionAliases =
     .filterNot { it.isBlank() || it.startsWith('#') }
     .map(::KotlinToolingVersion)
 
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
 pluginDevKit {
   pluginPackage = "$group.compiler"
   versionAliases.forEach { testAgainst(it) }
-
-  kotlin {
-    applyPluginDevKitHierarchyTemplate {
-      groupVersions("nonJvm", { true }) {
-        preDev(2, 4, 20, "pre2420Dev")
-        postDev(2, 4, 20, "post2420Dev")
-      }
-    }
-  }
 
   defaultTestVersion(
     providers.gradleProperty("metro.testCompilerVersion").getOrElse(libs.versions.kotlin.get())
