@@ -28,8 +28,7 @@ excludes = "config/license-header-excludes-java.txt"
 exclude = [
   "**/build/**",
   "**/target/**",
-  "**/src/test/data/**",
-  "**/src/*/test/data/**",
+  "**/src/**/data/**",
   # Java-side: generated test classes and the upstream-vendored math util.
   "**/*Generated.java",
   "**/BetweennessCentrality.java",

@@ -2,15 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import com.vanniktech.maven.publish.DeploymentValidation
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainService
-import org.gradle.kotlin.dsl.withType
 import org.jetbrains.dokka.gradle.DokkaExtension
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompilerOptions
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
@@ -102,25 +99,28 @@ plugins.withType<KotlinBasePlugin> {
         jvmTarget.convention(metroExtension.jvmTarget.map(JvmTarget::fromTarget))
         jvmDefault.convention(JvmDefaultMode.NO_COMPATIBILITY)
         freeCompilerArgs.add("-Xassertions=jvm")
-        if (isCompilerProject) {
-          freeCompilerArgs.addAll(
-            "-Xreturn-value-checker=full",
-            "-Xcontext-sensitive-resolution",
-            "-Xwhen-expressions=indy",
-            //  "-Xallow-contracts-on-more-functions",
-            //  "-Xallow-condition-implies-returns-contracts",
-            //  "-Xallow-holdsin-contract",
-          )
-          optIn.addAll(
-            "kotlin.contracts.ExperimentalContracts",
-            "kotlin.contracts.ExperimentalExtendedContracts",
-            "org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi",
-            "org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI",
-          )
-        }
       }
     }
   }
+  if (isCompilerProject)
+    configure<KotlinMultiplatformExtension> {
+      compilerOptions {
+        freeCompilerArgs.addAll(
+          "-Xreturn-value-checker=full",
+          "-Xcontext-sensitive-resolution",
+          "-Xwhen-expressions=indy",
+          //  "-Xallow-contracts-on-more-functions",
+          //  "-Xallow-condition-implies-returns-contracts",
+          //  "-Xallow-holdsin-contract",
+        )
+        optIn.addAll(
+          "kotlin.contracts.ExperimentalContracts",
+          "kotlin.contracts.ExperimentalExtendedContracts",
+          "org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi",
+          "org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI",
+        )
+      }
+    }
 }
 
 pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {

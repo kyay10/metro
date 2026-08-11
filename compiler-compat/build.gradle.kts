@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 // Copyright (C) 2025 Zac Sweers
 // SPDX-License-Identifier: Apache-2.0
 plugins {
@@ -41,7 +43,36 @@ buildConfig {
   )
 }
 
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
+  compilerOptions {
+    optIn.add("org.jetbrains.kotlin.config.MessageCollectorAccess")
+  }
+  pluginDevKit {
+    applyPluginDevKitHierarchyTemplate {
+      groupVersions("nonJvm", { true }) {
+        postDev(2, 4, "post24Dev") {
+          post("2.4.0", "post24") {
+            postDev(2, 4, 20, "post2420Dev") {
+              post("2.4.20-Beta2", "post2420Beta2") {
+                postDev(2, 5, "post25Dev")
+              }
+            }
+          }
+        }
+
+        preDev(2, 5, "pre25Dev") {
+          pre("2.4.20-Beta2", "pre2420Beta2") {
+            preDev(2, 4, 20, "pre2420Dev") {
+              pre("2.4.0", "pre24") {
+                preDev(2, 4, "pre24Dev")
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   sourceSets {
     jvmTest {
       dependencies {
@@ -56,30 +87,11 @@ tasks.generateTests { enabled = false }
 
 tasks.withType<Test> { failOnNoDiscoveredTests = false }
 
-pluginDevKit {
-  // TODO extract into file
-  val versions =
-    listOf(
-      "2.3.20",
-      "2.4.0-dev-2124",
-      "2.4.0",
-      "2.4.20-dev-6138",
-      "2.4.20-Beta1",
-      "2.4.20-Beta2",
-      "2.5.0-dev-498",
-    )
-  kotlin.jvm().compilations {
-    developFor(versions.first())
-    versions.windowed(2) { (prev, version) ->
-      developFor(version) {
-        main {
-          // TODO this could be default behavior
-          val compilation = getByName(versionName)
-          val prevCompilation = getByName(developFor.getByName(prev).versionName)
-          compilation.associateWith(prevCompilation)
-          compilation.output.classesDirs.from(prevCompilation.output.classesDirs)
-        }
-      }
-    }
+val versionAliases =
+  isolated.projectDirectory.file("version-aliases.txt").asFile.readLines().filterNot {
+    it.isBlank() || it.startsWith('#')
   }
+
+pluginDevKit {
+  versionAliases.forEach { testAgainst(it) }
 }

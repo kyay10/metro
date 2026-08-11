@@ -2,24 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 @file:OptIn(ExperimentalWasmDsl::class)
 
-import org.jetbrains.kotlin.compiler.plugin.devkit.baseVersionName
 import org.jetbrains.kotlin.compiler.plugin.devkit.setClasspathProperty
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
-import org.jetbrains.kotlin.tooling.core.toKotlinVersion
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
   pluginDevKit("compiler-plugin")
-}
-
-kotlin.sourceSets {
-  jvmTestFixtures {
-    kotlin.srcDir("src/test/kotlin")
-  }
-  jvmTest {
-    kotlin.setSrcDirs(emptyList<Any?>())
-  }
 }
 
 val versionAliases =
@@ -31,22 +21,19 @@ val versionAliases =
     .filterNot { it.isBlank() || it.startsWith('#') }
     .map(::KotlinToolingVersion)
 
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 pluginDevKit {
   pluginPackage = "$group.compiler"
-  for (v in listOf("2.3.20", "2.4.0", "2.4.20-dev-6138")) testAgainstWithFixtures(v) {
-    testFixtures {
-      val shortVersion = KotlinToolingVersion(version.toKotlinVersion()).baseVersionName
-      kotlin.srcDirs("src/generator$shortVersion/kotlin")
-      resources.srcDirs(listOf("src/generator$shortVersion/resources"))
-    }
-  }
-
   versionAliases.forEach { testAgainst(it) }
 
-  // lowest 2.4.20 dev version we support
-  val k2420Target = testAgainstWithFixtures("2.4.20-dev-6138")
-  testAgainst("2.4.20-Beta1") { sourceFixturesFrom(k2420Target) }
-  testAgainst("2.4.20-Beta2") { sourceFixturesFrom(k2420Target) }
+  kotlin {
+    applyPluginDevKitHierarchyTemplate {
+      groupVersions("nonJvm", { true }) {
+        preDev(2, 4, 20, "pre2420Dev")
+        postDev(2, 4, 20, "post2420Dev")
+      }
+    }
+  }
 
   defaultTestVersion(
     providers.gradleProperty("metro.testCompilerVersion").getOrElse(libs.versions.kotlin.get())
@@ -107,7 +94,7 @@ pluginDevKit.testDataLibraries {
 }
 
 kotlin.sourceSets {
-  jvmTestFixtures {
+  commonTestFixtures {
     dependencies {
       api(kotlin("compose-compiler-plugin"))
 
