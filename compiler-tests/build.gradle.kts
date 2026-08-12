@@ -167,5 +167,5 @@ tasks.withType<Test> {
   systemProperty("metro.shortLocations", "true")
   testOmitRedundantMirrors?.let { systemProperty("metro.testOmitRedundantMirrors", it) }
 
-  setClasspathProperty("ksp.testRuntimeClasspath", configurations.testFixturesRuntimeClasspath)
+  setClasspathProperty("ksp.testRuntimeClasspath", configurations.k240TestFixturesRuntimeClasspath)
 }
