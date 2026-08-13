@@ -50,33 +50,24 @@ kotlin {
   }
   pluginDevKit {
     applyPluginDevKitHierarchyTemplate {
-      groupVersions("nonJvm", { true }) {
-        postDev(2, 4, "post24Dev") {
-          post("2.4.0", "post24") {
-            postDev(2, 4, 20, "post2420Dev") {
-              post("2.4.20-Beta2", "post2420Beta2") {
-                postDev(2, 5, "post25Dev")
-              }
-            }
-          }
-        }
-
-        preDev(2, 5, "pre25Dev") {
-          pre("2.4.20-Beta2", "pre2420Beta2") {
-            preDev(2, 4, 20, "pre2420Dev") {
-              pre("2.4.0", "pre24") {
-                preDev(2, 4, "pre24Dev")
-              }
+      postDev(2, 4, "post24Dev") {
+        post("2.4.0", "post24") {
+          postDev(2, 4, 20, "post2420Dev") {
+            post("2.4.20-Beta2", "post2420Beta2") {
+              postDev(2, 5, "post25Dev")
             }
           }
         }
       }
-    }
-  }
-  sourceSets {
-    jvmTest {
-      dependencies {
-        implementation(libs.truth)
+
+      preDev(2, 5, "pre25Dev") {
+        pre("2.4.20-Beta2", "pre2420Beta2") {
+          preDev(2, 4, 20, "pre2420Dev") {
+            pre("2.4.0", "pre24") {
+              preDev(2, 4, "pre24Dev")
+            }
+          }
+        }
       }
     }
   }
