@@ -85,4 +85,6 @@ val versionAliases =
 
 pluginDevKit {
   versionAliases.forEach { testAgainst(it) }
+  componentRegistrar.unsetConvention()
+  commandLineProcessor.unsetConvention()
 }

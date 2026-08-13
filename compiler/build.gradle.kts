@@ -218,6 +218,8 @@ pluginDevKit {
   defaultTestVersion(
     providers.gradleProperty("metro.testCompilerVersion").getOrElse(libs.versions.kotlin.get())
   )
+  componentRegistrar = "dev.zacsweers.metro.compiler.MetroComponentRegistrar"
+  commandLineProcessor = "dev.zacsweers.metro.compiler.MetroCommandLineProcessor"
 }
 
 dependencies {
@@ -227,6 +229,10 @@ dependencies {
 
 kotlin {
   sourceSets {
+    entryPoint.dependencies {
+      compileOnly(project(":runtime"))
+      compileOnly(libs.poko.annotations)
+    }
     commonMain.dependencies {
       compileOnly(libs.kotlin.stdlib)
       compileOnly(libs.poko.annotations)
