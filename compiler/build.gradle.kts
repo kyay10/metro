@@ -104,7 +104,7 @@ dependencies {
 
 val mainRuntimeClasspath =
   configurations.getByName(
-    kotlin.jvm().compilations.getByName("main").runtimeDependencyConfigurationName
+    pluginDevKit.testAgainst.first().mainCompilation.runtimeDependencyConfigurationName
   )
 
 val generateDiagnosticsDocs =
@@ -195,7 +195,7 @@ tasks.shadowJar {
 project.afterEvaluate {
   kotlin {
     sourceSets {
-      jvmMain {
+      commonMain {
         configurations.named(implementationConfigurationName) {
           dependencies.removeIf { it is ExternalDependency && it.group == "dev.drewhamilton.poko" }
         }
