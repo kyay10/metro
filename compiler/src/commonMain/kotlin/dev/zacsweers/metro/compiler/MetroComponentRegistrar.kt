@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
-import dev.zacsweers.metro.compiler.MetroCompilerPluginRegistrar.Companion.isIde
 import dev.zacsweers.metro.compiler.circuit.CircuitIrDeclarationGenerationExtension
 import dev.zacsweers.metro.compiler.circuit.CircuitIrExtension
 import dev.zacsweers.metro.compiler.compat.loadCompilerVersionOrNull
@@ -15,7 +14,6 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
-import org.jetbrains.kotlin.compiler.plugin.devkit.DevKitCompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.devkit.DevKitComponentRegistrar
 import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
@@ -23,8 +21,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
 
-public class MetroCompilerPluginRegistrar :
-  DevKitCompilerPluginRegistrar(MetroComponentRegistrar::class) {
+public class MetroComponentRegistrar : DevKitComponentRegistrar {
   companion object {
     val isIde by lazy {
       try {
@@ -37,13 +34,6 @@ public class MetroCompilerPluginRegistrar :
     }
   }
 
-  public override val pluginId: String = PLUGIN_ID
-
-  override val supportsK2: Boolean
-    get() = true
-}
-
-public class MetroComponentRegistrar : DevKitComponentRegistrar {
   override fun CompilerPluginRegistrar.ExtensionStorage.registerExtensions(
     configuration: CompilerConfiguration
   ) {

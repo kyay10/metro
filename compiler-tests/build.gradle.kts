@@ -27,6 +27,8 @@ pluginDevKit {
   defaultTestVersion(
     providers.gradleProperty("metro.testCompilerVersion").getOrElse(libs.versions.kotlin.get())
   )
+  componentRegistrar.unsetConvention()
+  commandLineProcessor.unsetConvention()
 }
 
 // Configure the compiler-version-related test properties per registered devkit test suite, so

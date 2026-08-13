@@ -19,6 +19,9 @@ import okio.Buffer
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import org.jetbrains.kotlin.compiler.plugin.devkit.DevKitCLP
+import org.jetbrains.kotlin.compiler.plugin.devkit.DevKitComponentRegistrar
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
@@ -84,8 +87,18 @@ abstract class MetroCompilerTest {
         .build()
     return KotlinCompilation().apply {
       workingDir = temporaryFolder.newFolder(compilationName)
-      compilerPluginRegistrars = listOf(MetroCompilerPluginRegistrar())
-      val processor = MetroCommandLineProcessor()
+      compilerPluginRegistrars =
+        listOf(
+          object :
+            CompilerPluginRegistrar(), DevKitComponentRegistrar by MetroComponentRegistrar() {
+            override val pluginId: String = PLUGIN_ID
+            override val supportsK2: Boolean = true
+          }
+        )
+      val processor =
+        object : CommandLineProcessor, DevKitCLP by MetroCommandLineProcessor() {
+          override val pluginId: String = PLUGIN_ID
+        }
       commandLineProcessors = listOf(processor)
       pluginOptions = finalOptions.toPluginOptions(processor)
       inheritClassPath = true
