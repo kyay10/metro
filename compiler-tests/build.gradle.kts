@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
-  pluginDevKit("compiler-plugin")
+  pluginDevKit("compiler-library")
 }
 
 val versionAliases =
@@ -27,8 +27,6 @@ pluginDevKit {
   defaultTestVersion(
     providers.gradleProperty("metro.testCompilerVersion").getOrElse(libs.versions.kotlin.get())
   )
-  componentRegistrar.unsetConvention()
-  commandLineProcessor.unsetConvention()
 }
 
 // Configure the compiler-version-related test properties per registered devkit test suite, so

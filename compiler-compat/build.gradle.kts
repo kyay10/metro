@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 // SPDX-License-Identifier: Apache-2.0
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
-  pluginDevKit("compiler-plugin")
+  pluginDevKit("compiler-library")
   id("metro.publish")
 }
 
@@ -85,6 +85,4 @@ val versionAliases =
 
 pluginDevKit {
   versionAliases.forEach { testAgainst(it) }
-  componentRegistrar.unsetConvention()
-  commandLineProcessor.unsetConvention()
 }
