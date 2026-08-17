@@ -101,8 +101,8 @@ jobs:
       - name: Check root project
         run: |
           ./scripts/run-ci-gradle.sh check --continue --quiet \
-            -x :compiler:jvmTest \
-            -x :compiler-tests:jvmTest \
+            -x :compiler:defaultTest \
+            -x :compiler-tests:defaultTest \
             -x :gradle-plugin:functionalTest \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
@@ -155,14 +155,14 @@ jobs:
         id: generate_tests
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:generateTests --quiet \
-            '-Pmetro.testCompilerVersion=${{ matrix.kotlin-compiler }}' \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: Test compiler
         run: |
-          ./scripts/run-ci-gradle.sh :compiler:jvmTest :compiler-tests:jvmTest --continue --quiet \
-            '-Pmetro.testCompilerVersion=${{ matrix.kotlin-compiler }}' \
+          ./scripts/run-ci-gradle.sh :compiler:defaultTest :compiler-tests:defaultTest --continue --quiet \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -171,7 +171,7 @@ jobs:
         if: ${{ !cancelled() && steps.generate_tests.outcome == 'success' }}
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:functionalTest --continue --quiet \
-            '-Pmetro.testCompilerVersion=${{ matrix.kotlin-compiler }}' \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.functionalTestKmpTarget=jvm \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -223,7 +223,7 @@ jobs:
 
       - name: Test shaded compiler
         run: |
-          ./scripts/run-ci-gradle.sh :compiler-tests:jvmTest --quiet \
+          ./scripts/run-ci-gradle.sh :compiler-tests:defaultTest --quiet \
             -Pmetro.testJavaVersion=21 \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.compiler.ShadedCompilerTest.optional terminal providers initialize from the shaded compiler jar' \
@@ -279,7 +279,7 @@ jobs:
       - name: Run JS box smoke tests
         if: github.ref != 'refs/heads/main'
         run: |
-          ./gradlew :compiler-tests:jvmTest --quiet \
+          ./gradlew :compiler-tests:defaultTest --quiet \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Inject$Assisted.testBasicAssistedInject' \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Multibindings.testMapProviderLazyValues' \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Suspend.testMixedSuspendChain' \
@@ -296,7 +296,7 @@ jobs:
       - name: Run JS box tests
         if: github.ref == 'refs/heads/main'
         run: |
-          ./gradlew :compiler-tests:jvmTest --continue --quiet \
+          ./gradlew :compiler-tests:defaultTest --continue --quiet \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.JsFastInitBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.JsContributionProvidersBoxTestGenerated*'

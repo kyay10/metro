@@ -23,10 +23,6 @@ val versionAliases =
 pluginDevKit {
   pluginPackage = "$group.compiler"
   versionAliases.forEach { testAgainst(it) }
-
-  defaultTestVersion(
-    providers.gradleProperty("metro.testCompilerVersion").getOrElse(libs.versions.kotlin.get())
-  )
 }
 
 // Configure the compiler-version-related test properties per registered devkit test suite, so

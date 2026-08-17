@@ -73,9 +73,6 @@ pluginDevKit {
   addRuntimeDependency = false
 
   supportedVersions.forEach { testAgainst(it) }
-  defaultTestVersion(
-    providers.gradleProperty("metro.testCompilerVersion").getOrElse(libs.versions.kotlin.get())
-  )
 }
 
 gradlePlugin {
