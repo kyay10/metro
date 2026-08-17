@@ -152,17 +152,7 @@ project.afterEvaluate {
   }
 }
 
-val versionAliases =
-  rootProject.isolated.projectDirectory
-    .dir("compiler-compat")
-    .file("version-aliases.txt")
-    .asFile
-    .readLines()
-    .filterNot { it.isBlank() || it.startsWith('#') }
-
 pluginDevKit {
-  pluginPackage = "$group.compiler"
-  versionAliases.forEach { testAgainst(it) }
   componentRegistrar = "dev.zacsweers.metro.compiler.MetroComponentRegistrar"
   commandLineProcessor = "dev.zacsweers.metro.compiler.MetroCommandLineProcessor"
 }

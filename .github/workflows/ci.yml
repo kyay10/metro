@@ -156,6 +156,7 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:generateTests --quiet \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
@@ -163,6 +164,7 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :compiler:defaultTest :compiler-tests:defaultTest --continue --quiet \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -172,6 +174,7 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:functionalTest --continue --quiet \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.functionalTestKmpTarget=jvm \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -224,6 +227,7 @@ jobs:
       - name: Test shaded compiler
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:defaultTest --quiet \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
             -Pmetro.testJavaVersion=21 \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.compiler.ShadedCompilerTest.optional terminal providers initialize from the shaded compiler jar' \
@@ -233,6 +237,7 @@ jobs:
       - name: Test shaded compiler through Gradle
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:functionalTest --quiet \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
             -Pmetro.testJavaVersion=21 \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.gradle.MetroArtifactsTest.shaded compiler renders rich diagnostics' \
@@ -280,6 +285,7 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: |
           ./gradlew :compiler-tests:defaultTest --quiet \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Inject$Assisted.testBasicAssistedInject' \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Multibindings.testMapProviderLazyValues' \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Suspend.testMixedSuspendChain' \
@@ -290,6 +296,7 @@ jobs:
         run: |
           ./gradlew :gradle-plugin:functionalTest --quiet \
             -Pmetro.functionalTestKmpTarget=wasmJs \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
             --tests 'dev.zacsweers.metro.gradle.incremental.ICTests.icWorksWhenAddingAParamToExistingInjectedTypeWithScopeWithZeroToOneParams*' \
             -Dorg.gradle.configuration-cache.read-only=true
 
@@ -297,6 +304,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           ./gradlew :compiler-tests:defaultTest --continue --quiet \
+            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
             --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.JsFastInitBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.JsContributionProvidersBoxTestGenerated*'

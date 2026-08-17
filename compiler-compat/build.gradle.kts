@@ -77,12 +77,3 @@ kotlin {
 tasks.generateTests { enabled = false }
 
 tasks.withType<Test> { failOnNoDiscoveredTests = false }
-
-val versionAliases =
-  isolated.projectDirectory.file("version-aliases.txt").asFile.readLines().filterNot {
-    it.isBlank() || it.startsWith('#')
-  }
-
-pluginDevKit {
-  versionAliases.forEach { testAgainst(it) }
-}

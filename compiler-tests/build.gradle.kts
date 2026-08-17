@@ -4,25 +4,10 @@
 
 import org.jetbrains.kotlin.compiler.plugin.devkit.setClasspathProperty
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
   pluginDevKit("compiler-library")
-}
-
-val versionAliases =
-  rootProject.isolated.projectDirectory
-    .dir("compiler-compat")
-    .file("version-aliases.txt")
-    .asFile
-    .readLines()
-    .filterNot { it.isBlank() || it.startsWith('#') }
-    .map(::KotlinToolingVersion)
-
-pluginDevKit {
-  pluginPackage = "$group.compiler"
-  versionAliases.forEach { testAgainst(it) }
 }
 
 // Configure the compiler-version-related test properties per registered devkit test suite, so
