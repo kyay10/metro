@@ -24,7 +24,6 @@ plugins {
   alias(libs.plugins.poko)
   pluginDevKit("compiler-plugin")
   alias(libs.plugins.wire)
-  alias(libs.plugins.shadow)
   id("metro.publish")
   // apply false to put metro on the classpath. Conditionally applied below.
   alias(libs.plugins.metro)
