@@ -101,9 +101,9 @@ jobs:
       - name: Check root project
         run: |
           ./scripts/run-ci-gradle.sh check --continue --quiet \
-            -x :compiler:defaultTest \
-            -x :compiler-tests:defaultTest \
-            -x :gradle-plugin:functionalTest \
+            -x :compiler:check \
+            -x :compiler-tests:check \
+            -x :gradle-plugin:check \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: (Fail-only) Upload reports
