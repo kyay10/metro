@@ -34,7 +34,7 @@ run_checks() {
     local version_flag=""
 
     if [[ -n "$compiler_version" ]]; then
-        version_flag="-Pmetro.testCompilerVersion=$compiler_version"
+        version_flag="-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=$compiler_version"
         echo "Running checks with Kotlin version $compiler_version..."
     else
         echo "Running checks..."
@@ -49,13 +49,13 @@ run_tests() {
     local version_flag=""
 
     if [[ -n "$compiler_version" ]]; then
-        version_flag="-Pmetro.testCompilerVersion=$compiler_version"
+        version_flag="-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=$compiler_version"
         echo "Running tests with Kotlin version $compiler_version..."
     else
         echo "Running tests..."
     fi
 
-    ./gradlew :compiler:jvmTest :compiler-tests:jvmTest :gradle-plugin:functionalTest :runtime:allTests :runtime-coroutines:allTests $version_flag --quiet -x logLinkDokkaGeneratePublicationHtml -x dokkaGeneratePublicationHtml
+    ./gradlew :compiler:defaultTest :compiler-tests:defaultTest :gradle-plugin:functionalTest :runtime:allTests :runtime-coroutines:allTests $version_flag --quiet -x logLinkDokkaGeneratePublicationHtml -x dokkaGeneratePublicationHtml
     # We have to regen package locks because the kotlin yarn/node/etc build tooling is brittle
     ./gradlew -p samples kotlinWasmUpgradePackageLock kotlinUpgradePackageLock --rerun-tasks --no-build-cache --no-configuration-cache --quiet
     ./gradlew -p samples :integration-tests:allTests --quiet
@@ -275,7 +275,7 @@ case "$1" in
 
        version_flag=""
        if [[ -n "$version" ]]; then
-           version_flag="-Pmetro.testCompilerVersion=$version"
+           version_flag="-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=$version"
        fi
 
        # Annoyingly, the apiDump and package lock tasks have caching issues

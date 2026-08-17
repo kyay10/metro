@@ -163,9 +163,6 @@ val versionAliases =
 pluginDevKit {
   pluginPackage = "$group.compiler"
   versionAliases.forEach { testAgainst(it) }
-  defaultTestVersion(
-    providers.gradleProperty("metro.testCompilerVersion").getOrElse(libs.versions.kotlin.get())
-  )
   componentRegistrar = "dev.zacsweers.metro.compiler.MetroComponentRegistrar"
   commandLineProcessor = "dev.zacsweers.metro.compiler.MetroCommandLineProcessor"
 }
