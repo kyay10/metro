@@ -6,8 +6,8 @@ See @README.md, @docs, and @.github/CONTRIBUTING.md for project overview.
 
 ### Building and Testing
 
-- `./gradlew :compiler:defaultTest` - Run legacy compiler tests
-- `./gradlew :compiler-tests:defaultTest` - Run new compiler tests
+- `./gradlew :compiler:k240Test` - Run legacy compiler tests
+- `./gradlew :compiler-tests:k240Test` - Run new compiler tests
 - `./gradlew :gradle-plugin:functionalTest` - Run Gradle integration tests
 - `./gradlew -p samples check` - Run sample project tests
 - `./metrow check` - Runs _all_ validation and tests in the project (tests, linting, API validation). This is expensive.
@@ -64,7 +64,7 @@ Metro is a compile-time dependency injection framework implemented as a Kotlin c
 - Diagnostic tests (`data/diagnostic/`) - Error reporting and validation
 - Dump tests (`data/dump/`) - FIR/IR tree inspection and verification
 
-To create a new test, add a source file under the appropriate directory and then run `./gradlew :compiler-tests:generateTests` to regenerate tests. This will then add a generated junit test that can be run via the standard `./gradlew :compiler-tests:defaultTest` task.
+To create a new test, add a source file under the appropriate directory and then run `./gradlew :compiler-tests:generateTests` to regenerate tests. This will then add a generated junit test that can be run via the standard `./gradlew :compiler-tests:k240Test` task.
 
 **samples/** - Real-world integration examples
 - `weather-app/` - Basic multiplatform usage
@@ -100,7 +100,7 @@ To create a new test, add a source file under the appropriate directory and then
 ## Testing New Features
 
 1. Add compiler tests in `compiler-tests/src/test/data/` using the appropriate test type
-2. Test existing tests with `./gradlew :compiler:defaultTest`.
+2. Test existing tests with `./gradlew :compiler:k240Test`.
 3. Test integration with samples in `samples/` directory
 
 Never run tests yourself without asking me first. You are not usually able to debug them yourself.

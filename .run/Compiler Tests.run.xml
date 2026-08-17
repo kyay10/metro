@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":compiler-tests:defaultTest" />
+          <option value=":compiler-tests:k240Test" />
         </list>
       </option>
       <option name="vmOptions" />
