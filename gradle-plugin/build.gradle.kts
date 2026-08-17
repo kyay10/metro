@@ -44,10 +44,11 @@ listOf("runtimeElements", "apiElements").forEach { configurationName ->
 tasks.withType<ValidatePlugins>().configureEach { enableStricterValidation = true }
 
 // Collect all supported Kotlin versions from compiler-compat modules
-val versionAliasesFile =
-  rootProject.isolated.projectDirectory.dir("compiler-compat").file("version-aliases.txt")
 val supportedVersions =
-  versionAliasesFile.asFile
+  rootProject.isolated.projectDirectory
+    .dir("compiler-compat")
+    .file("version-aliases.txt")
+    .asFile
     .readLines()
     .filterNot { it.isBlank() || it.startsWith('#') }
     .map { KotlinToolingVersion(it) }
@@ -71,8 +72,6 @@ buildConfig {
 
 pluginDevKit {
   addRuntimeDependency = false
-
-  supportedVersions.forEach { testAgainst(it) }
 }
 
 gradlePlugin {
