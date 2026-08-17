@@ -231,7 +231,7 @@ jobs:
             -Pmetro.testJavaVersion=21 \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.compiler.ShadedCompilerTest.optional terminal providers initialize from the shaded compiler jar' \
-            --tests 'dev.zacsweers.metro.compiler.DiagnosticTestGenerated$Rich.testMissingBindingRich' \
+            --tests 'dev.zacsweers.metro.compiler.*.DiagnosticTestGenerated$Rich.testMissingBindingRich' \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: Test shaded compiler through Gradle
@@ -286,9 +286,9 @@ jobs:
         run: |
           ./gradlew :compiler-tests:defaultTest --quiet \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
-            --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Inject$Assisted.testBasicAssistedInject' \
-            --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Multibindings.testMapProviderLazyValues' \
-            --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated$Suspend.testMixedSuspendChain' \
+            --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Inject$Assisted.testBasicAssistedInject' \
+            --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Multibindings.testMapProviderLazyValues' \
+            --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Suspend.testMixedSuspendChain' \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: Run Wasm bindings smoke test
@@ -305,9 +305,9 @@ jobs:
         run: |
           ./gradlew :compiler-tests:defaultTest --continue --quiet \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
-            --tests 'dev.zacsweers.metro.compiler.JsBoxTestGenerated*' \
-            --tests 'dev.zacsweers.metro.compiler.JsFastInitBoxTestGenerated*' \
-            --tests 'dev.zacsweers.metro.compiler.JsContributionProvidersBoxTestGenerated*'
+            --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated*' \
+            --tests 'dev.zacsweers.metro.compiler.*.JsFastInitBoxTestGenerated*' \
+            --tests 'dev.zacsweers.metro.compiler.*.JsContributionProvidersBoxTestGenerated*'
 
       - name: (Fail-only) Upload reports
         if: failure()
