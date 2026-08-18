@@ -35,7 +35,8 @@ pluginManager.withPlugin("java-base") {
     toolchain { languageVersion.convention(JavaLanguageVersion.of(jdkVersion)) }
   }
   tasks.withType<JavaCompile>().configureEach {
-    options.release.convention(metroExtension.jvmTarget.map(String::toInt))
+    sourceCompatibility = metroExtension.jvmTarget.get()
+    targetCompatibility = metroExtension.jvmTarget.get()
   }
 }
 
