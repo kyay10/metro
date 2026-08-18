@@ -30,7 +30,7 @@ val metroExtension =
   }
 
 // Java configuration
-pluginManager.withPlugin("java") {
+pluginManager.withPlugin("java-base") {
   extensions.configure<JavaPluginExtension> {
     toolchain { languageVersion.convention(JavaLanguageVersion.of(jdkVersion)) }
   }
