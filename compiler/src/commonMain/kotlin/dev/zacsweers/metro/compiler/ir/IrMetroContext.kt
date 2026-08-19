@@ -38,7 +38,13 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
 import org.jetbrains.kotlin.ir.util.parentDeclarationsWithSelf
 
-internal interface IrMetroContext : IrPluginContext {
+// 2.5.0-dev removes IrPluginContext.messageCollector, but we have to override it
+// in previous versions
+internal interface HasMessageCollector {
+  val messageCollector: MessageCollector
+}
+
+internal interface IrMetroContext : IrPluginContext, HasMessageCollector {
   // TODO inline extension?
   val metroContext
     get() = this

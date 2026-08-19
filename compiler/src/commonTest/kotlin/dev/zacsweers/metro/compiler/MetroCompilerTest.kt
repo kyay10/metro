@@ -359,14 +359,6 @@ abstract class MetroCompilerTest {
                 this@toPluginOptions.compilerVersion.orEmpty(),
               )
             }
-            COMPILER_VERSION_ALIASES -> {
-              processor.option(
-                entry.raw.cliOption,
-                this@toPluginOptions.compilerVersionAliases
-                  .map { (k, v) -> "$k=$v" }
-                  .joinToString(":"),
-              )
-            }
             PARALLEL_THREADS -> {
               processor.option(entry.raw.cliOption, this@toPluginOptions.parallelThreads)
             }

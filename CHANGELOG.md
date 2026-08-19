@@ -4,6 +4,10 @@ Changelog
 **Unreleased**
 --------------
 
+### Removed
+
+- **[Gradle]**: Removed `metro.compilerVersionAliases` (and the corresponding `compiler-version-aliases` compiler option). Metro no longer maintains its own table mapping fake IDE compiler versions (e.g. Android Studio canary's `2.3.255-dev-255`) to real ones — the Kotlin compiler plugin devkit resolves these from the running IDE's build number instead. The option had no effect on any recent release.
+
 1.4.0
 -----
 

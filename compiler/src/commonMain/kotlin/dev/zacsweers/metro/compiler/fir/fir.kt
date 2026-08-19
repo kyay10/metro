@@ -143,9 +143,7 @@ import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.coneTypeOrNull
 import org.jetbrains.kotlin.fir.types.constructClassLikeType
 import org.jetbrains.kotlin.fir.types.constructType
-import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.types.resolvedType
-import org.jetbrains.kotlin.fir.types.toLookupTag
 import org.jetbrains.kotlin.fir.types.type
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
@@ -1819,8 +1817,7 @@ internal fun buildClassReference(session: FirSession, classId: ClassId): FirGetC
       arguments += buildResolvedQualifierCompat(classId, classSymbol, classType)
     }
     coneTypeOrNull =
-      ConeClassLikeTypeImpl(
-        StandardClassIds.KClass.toLookupTag(),
+      StandardClassIds.KClass.constructClassLikeType(
         arrayOf(classType),
         isMarkedNullable = false,
       )

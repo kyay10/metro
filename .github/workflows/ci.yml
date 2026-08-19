@@ -15,8 +15,17 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
-  ORG_GRADLE_PROJECT_devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-  ORG_GRADLE_PROJECT_devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
+  # By default the devkit resolves its version set from the `devkit.*` range properties in
+  # gradle.properties — that full set is what `generate-matrix` reads. Steps that target one
+  # specific version park those ranges outside any version that exists, so `testAgainst` alone
+  # decides what gets configured. Expand unquoted, and always pair it with a `testAgainst` (an
+  # empty one means "just the build's own Kotlin"). The build's own Kotlin always has a target, so
+  # this narrows to one version, or two when the requested one differs from it.
+  DEVKIT_NARROW: >-
+    -Porg.jetbrains.kotlin.compiler.plugin.devkit.minCliVersion=99.0.0
+    -Porg.jetbrains.kotlin.compiler.plugin.devkit.maxCliVersion=99.9.9
+    -Porg.jetbrains.kotlin.compiler.plugin.devkit.minIdeaVersion=9999
+    -Porg.jetbrains.kotlin.compiler.plugin.devkit.useLatestDev=false
 
 jobs:
   format:
@@ -52,7 +61,7 @@ jobs:
 
   generate-matrix:
     name: "⊹ generate compiler matrix ⊹"
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.generate.outputs.matrix }}
       default_kotlin_version: ${{ steps.generate.outputs.default_kotlin_version }}
@@ -61,20 +70,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      # The matrix comes from the devkit via `:compiler-compat:compilerVersions`, so this job needs a
+      # configurable build. Read-only caches: no other job depends on what it would write.
+      - name: Setup Gradle
+        uses: ./.github/actions/setup-gradle
+        with:
+          encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          cache-read-only: true
+
       - name: Generate matrix
         id: generate
-        run: |
-          ./scripts/generate-ci-matrix.sh
-          default_kotlin_version=$(sed -n 's/^kotlin = "\(.*\)"/\1/p' gradle/libs.versions.toml)
-          if [[ -z "$default_kotlin_version" ]]; then
-            echo "::error::Could not read the default Kotlin version"
-            exit 1
-          fi
-          if ! grep -Fxq "$default_kotlin_version" compiler-compat/version-aliases.txt; then
-            echo "::error::Default Kotlin version $default_kotlin_version is not in the compiler matrix"
-            exit 1
-          fi
-          echo "default_kotlin_version=$default_kotlin_version" >> "$GITHUB_OUTPUT"
+        run: ./scripts/generate-ci-matrix.sh
 
   core:
     name: core artifacts
@@ -95,8 +101,6 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           konan: true
           konan-cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Check root project
         run: |
@@ -104,6 +108,7 @@ jobs:
             -x :compiler:check \
             -x :compiler-tests:check \
             -x :gradle-plugin:check \
+            $DEVKIT_NARROW '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: (Fail-only) Upload reports
@@ -148,14 +153,13 @@ jobs:
           konan: true
           konan-cache-read-only: ${{ github.ref != 'refs/heads/main' || matrix.kotlin-compiler == needs.generate-matrix.outputs.default_kotlin_version }}
           kotlin-compiler-version: ${{ matrix.kotlin-compiler }}
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Generate compiler tests
         id: generate_tests
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:generateTests --quiet \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            $DEVKIT_NARROW \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -164,6 +168,7 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :compiler:defaultTest :compiler-tests:defaultTest --continue --quiet \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            $DEVKIT_NARROW \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.excludeJsBoxTests \
@@ -174,6 +179,7 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:functionalTest --continue --quiet \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            $DEVKIT_NARROW \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.functionalTestKmpTarget=jvm \
@@ -221,13 +227,11 @@ jobs:
         with:
           encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Test shaded compiler
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:defaultTest --quiet \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            $DEVKIT_NARROW \
             -Pmetro.testJavaVersion=21 \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.compiler.ShadedCompilerTest.optional terminal providers initialize from the shaded compiler jar' \
@@ -237,7 +241,7 @@ jobs:
       - name: Test shaded compiler through Gradle
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:functionalTest --quiet \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            $DEVKIT_NARROW \
             -Pmetro.testJavaVersion=21 \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.gradle.MetroArtifactsTest.shaded compiler renders rich diagnostics' \
@@ -275,17 +279,18 @@ jobs:
         with:
           encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Generate tests
-        run: ./gradlew :compiler-tests:generateTests --quiet ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
+        run: |
+          ./gradlew :compiler-tests:generateTests --quiet \
+            $DEVKIT_NARROW '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: Run JS box smoke tests
         if: github.ref != 'refs/heads/main'
         run: |
           ./gradlew :compiler-tests:defaultTest --quiet \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            $DEVKIT_NARROW \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Inject$Assisted.testBasicAssistedInject' \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Multibindings.testMapProviderLazyValues' \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Suspend.testMixedSuspendChain' \
@@ -296,7 +301,7 @@ jobs:
         run: |
           ./gradlew :gradle-plugin:functionalTest --quiet \
             -Pmetro.functionalTestKmpTarget=wasmJs \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            $DEVKIT_NARROW \
             --tests 'dev.zacsweers.metro.gradle.incremental.ICTests.icWorksWhenAddingAParamToExistingInjectedTypeWithScopeWithZeroToOneParams*' \
             -Dorg.gradle.configuration-cache.read-only=true
 
@@ -304,7 +309,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           ./gradlew :compiler-tests:defaultTest --continue --quiet \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            $DEVKIT_NARROW \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.*.JsFastInitBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.*.JsContributionProvidersBoxTestGenerated*'
@@ -355,12 +360,13 @@ jobs:
           cache-read-only: true
           # These jobs restore the versioned Konan cache written by the default Kotlin core lane.
           konan: true
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: ':gradle-plugin:functionalTest'
         if: github.ref == 'refs/heads/main'
-        run: ./gradlew :gradle-plugin:functionalTest --continue --quiet -Pmetro.functionalTestKmpTarget=${{ matrix.target }}
+        run: |
+          ./gradlew :gradle-plugin:functionalTest --continue --quiet \
+            $DEVKIT_NARROW '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            -Pmetro.functionalTestKmpTarget=${{ matrix.target }}
 
       - name: (Fail-only) Upload reports
         if: failure() && github.ref == 'refs/heads/main'
@@ -393,8 +399,6 @@ jobs:
           encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
           konan: true
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Check samples
         run: |
@@ -432,8 +436,6 @@ jobs:
         with:
           encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Test idea-plugin
         run: ./gradlew -p idea-plugin test --quiet ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -491,14 +493,15 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' || matrix.os == 'ubuntu-latest' }}
           konan: true
           konan-cache-read-only: ${{ github.ref != 'refs/heads/main' || matrix.os == 'ubuntu-latest' }}
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Check runtime and IC tests
         if: github.ref == 'refs/heads/main'
         # `all` exercises every KmpTarget entry on this OS — host native is OS-specific (macosArm64,
         # mingwX64, etc.), so each runner covers a different native target naturally.
-        run: ./gradlew :runtime:allTests :runtime-coroutines:allTests :gradle-plugin:functionalTest --continue --quiet -Pmetro.functionalTestKmpTarget=all
+        run: |
+          ./gradlew :runtime:allTests :runtime-coroutines:allTests :gradle-plugin:functionalTest --continue --quiet \
+            $DEVKIT_NARROW '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            -Pmetro.functionalTestKmpTarget=all
 
       - name: Check samples
         if: github.ref == 'refs/heads/main'
@@ -534,8 +537,6 @@ jobs:
           encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
           konan: true
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Build Metro benchmark
         run: |
@@ -591,8 +592,6 @@ jobs:
           encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
           konan: true
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Upload snapshot
         # Sonatype keeps giving 429 errors lately, so no need to mark this as failure for now

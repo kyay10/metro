@@ -868,27 +868,6 @@ public enum class MetroOption(public val raw: RawMetroOption<*>) {
       valueMapper = { it },
     )
   ),
-  COMPILER_VERSION_ALIASES(
-    RawMetroOption(
-      name = "compiler-version-aliases",
-      defaultValue = emptyMap(),
-      valueDescription = "<from1=to1:from2=to2>",
-      description =
-        "Map fake IDE compiler versions to real compiler versions. Format: from1=to1:from2=to2.",
-      required = false,
-      allowMultipleOccurrences = false,
-      valueMapper = { value ->
-        if (value.isBlank()) {
-          emptyMap()
-        } else {
-          value.split(":").associate { entry ->
-            val (from, to) = entry.split("=", limit = 2)
-            from to to
-          }
-        }
-      },
-    )
-  ),
   PARALLEL_THREADS(
     RawMetroOption(
       name = "parallel-threads",
@@ -1219,8 +1198,6 @@ public class MetroOptions(
       ?.toBooleanStrict(),
   public val compilerVersion: String? =
     MetroOption.COMPILER_VERSION.raw.defaultValue.expectAs<String>().takeUnless(String::isBlank),
-  public val compilerVersionAliases: Map<String, String> =
-    MetroOption.COMPILER_VERSION_ALIASES.raw.defaultValue.expectAs(),
   public val parallelThreads: Int = MetroOption.PARALLEL_THREADS.raw.defaultValue.expectAs(),
   public val bufferedIcTracking: Boolean =
     MetroOption.BUFFERED_IC_TRACKING.raw.defaultValue.expectAs(),
@@ -1539,7 +1516,6 @@ public class MetroOptions(
     public var forceEnableFirInIde: Boolean = base.forceEnableFirInIde
     public var pluginOrderSet: Boolean? = base.pluginOrderSet
     public var compilerVersion: String? = base.compilerVersion
-    public var compilerVersionAliases: Map<String, String> = base.compilerVersionAliases
     public var parallelThreads: Int = base.parallelThreads
     public var bufferedIcTracking: Boolean = base.bufferedIcTracking
     public var omitRedundantMirrors: Boolean = base.omitRedundantMirrors
@@ -1900,7 +1876,6 @@ public class MetroOptions(
           pluginOrderSet = value.expectAs<String>().takeUnless(String::isBlank)?.toBooleanStrict()
         MetroOption.COMPILER_VERSION ->
           compilerVersion = value.expectAs<String>().takeUnless(String::isBlank)
-        MetroOption.COMPILER_VERSION_ALIASES -> compilerVersionAliases = value.expectAs()
         MetroOption.PARALLEL_THREADS -> parallelThreads = value.expectAs()
         MetroOption.BUFFERED_IC_TRACKING -> bufferedIcTracking = value.expectAs()
         MetroOption.OMIT_REDUNDANT_MIRRORS -> omitRedundantMirrors = value.expectAs()
@@ -1990,7 +1965,6 @@ public class MetroOptions(
         forceEnableFirInIde = forceEnableFirInIde,
         pluginOrderSet = pluginOrderSet,
         compilerVersion = compilerVersion,
-        compilerVersionAliases = compilerVersionAliases,
         parallelThreads = parallelThreads,
         bufferedIcTracking = bufferedIcTracking,
         omitRedundantMirrors = omitRedundantMirrors,

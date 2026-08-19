@@ -346,7 +346,6 @@ class MetroArtifactsTest {
                 "patchKlibParams": true,
                 "forceEnableFirInIde": false,
                 "pluginOrderSet": true,
-                "compilerVersionAliases": {},
                 "parallelThreads": 0,
                 "bufferedIcTracking": true,
                 "omitRedundantMirrors": $omitRedundantMirrors,

@@ -19,18 +19,10 @@ inputs:
     default: 'true'
   kotlin-compiler-version:
     description: |
-      Kotlin compiler version this run targets (e.g. matrix.kotlin-compiler from
-      version-aliases.txt). Used directly as the per-version segment of the konan klib cache key
+      Kotlin compiler version this run targets (e.g. matrix.kotlin-compiler from the compiler
+      matrix). Used directly as the per-version segment of the konan klib cache key
       so each Kotlin version owns its own `kotlin-native-prebuilt-*` distribution. Leave empty
       when the caller uses the default Kotlin from libs.versions.toml.
-    required: false
-    default: ''
-  devKitSpaceUsername:
-    description: 'DevKitSpace username'
-    required: false
-    default: ''
-  devKitSpacePassword:
-    description: 'DevKitSpace password'
     required: false
     default: ''
 
@@ -45,9 +37,6 @@ runs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v6
-      env:
-        ORG_GRADLE_PROJECT_devKitSpaceUsername: ${{ inputs.devKitSpaceUsername }}
-        ORG_GRADLE_PROJECT_devKitSpacePassword: ${{ inputs.devKitSpacePassword }}
       with:
         cache-read-only: ${{ inputs.cache-read-only }}
         cache-encryption-key: ${{ inputs.encryption-key }}

@@ -46,7 +46,6 @@ package dev.zacsweers.metro.gradle {
     method @InaccessibleFromKotlin public final org.gradle.api.provider.Property<java.lang.Boolean> getAutomaticallyAddRuntimeDependencies();
     method @InaccessibleFromKotlin public final dev.zacsweers.metro.gradle.MetroPluginExtension.CompilerOptionsHandler getCompilerOptions();
     method @InaccessibleFromKotlin public final org.gradle.api.provider.Property<java.lang.String> getCompilerVersion();
-    method @InaccessibleFromKotlin public final org.gradle.api.provider.MapProperty<java.lang.String,java.lang.String> getCompilerVersionAliases();
     method @InaccessibleFromKotlin public final org.gradle.api.provider.Property<java.lang.Boolean> getContributesAsInject();
     method @InaccessibleFromKotlin public final org.gradle.api.provider.Property<java.lang.Boolean> getDebug();
     method @InaccessibleFromKotlin public final org.gradle.api.provider.Property<dev.zacsweers.metro.gradle.DiagnosticSeverity> getDesugaredProviderSeverity();
@@ -77,7 +76,6 @@ package dev.zacsweers.metro.gradle {
     property public final org.gradle.api.provider.Property<java.lang.Boolean> automaticallyAddRuntimeDependencies;
     property public final dev.zacsweers.metro.gradle.MetroPluginExtension.CompilerOptionsHandler compilerOptions;
     property @dev.zacsweers.metro.gradle.DangerousMetroGradleApi(message="This could break Metro\'s compatibility layer!") public final org.gradle.api.provider.Property<java.lang.String> compilerVersion;
-    property public final org.gradle.api.provider.MapProperty<java.lang.String,java.lang.String> compilerVersionAliases;
     property public final org.gradle.api.provider.Property<java.lang.Boolean> contributesAsInject;
     property public final org.gradle.api.provider.Property<java.lang.Boolean> debug;
     property public final org.gradle.api.provider.Property<dev.zacsweers.metro.gradle.DiagnosticSeverity> desugaredProviderSeverity;

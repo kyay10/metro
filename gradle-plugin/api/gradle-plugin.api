@@ -41,7 +41,6 @@ public abstract class dev/zacsweers/metro/gradle/MetroPluginExtension {
 	public final fun getAutomaticallyAddRuntimeDependencies ()Lorg/gradle/api/provider/Property;
 	public final fun getCompilerOptions ()Ldev/zacsweers/metro/gradle/MetroPluginExtension$CompilerOptionsHandler;
 	public final fun getCompilerVersion ()Lorg/gradle/api/provider/Property;
-	public final fun getCompilerVersionAliases ()Lorg/gradle/api/provider/MapProperty;
 	public final fun getContributesAsInject ()Lorg/gradle/api/provider/Property;
 	public final fun getDebug ()Lorg/gradle/api/provider/Property;
 	public final fun getDesugaredProviderSeverity ()Lorg/gradle/api/provider/Property;

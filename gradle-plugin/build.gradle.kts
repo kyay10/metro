@@ -5,7 +5,6 @@ import com.android.build.gradle.internal.lint.LintModelWriterTask
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 plugins {
   alias(libs.plugins.kotlin.jvm)
@@ -43,17 +42,6 @@ listOf("runtimeElements", "apiElements").forEach { configurationName ->
 
 tasks.withType<ValidatePlugins>().configureEach { enableStricterValidation = true }
 
-// Collect all supported Kotlin versions from compiler-compat modules
-val supportedVersions =
-  rootProject.isolated.projectDirectory
-    .dir("compiler-compat")
-    .file("version-aliases.txt")
-    .asFile
-    .readLines()
-    .filterNot { it.isBlank() || it.startsWith('#') }
-    .map { KotlinToolingVersion(it) }
-    .sorted()
-
 buildConfig {
   packageName("dev.zacsweers.metro.gradle")
   useKotlinOutput {
@@ -66,7 +54,7 @@ buildConfig {
   buildConfigField(
     "List<String>",
     "SUPPORTED_KOTLIN_VERSIONS",
-    "listOf(${supportedVersions.joinToString { "\"$it\"" }})",
+    "listOf(${pluginDevKit.testAgainst.joinToString { "\"${it.version}\"" }})",
   )
 }
 

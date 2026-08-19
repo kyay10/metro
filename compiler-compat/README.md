@@ -6,7 +6,7 @@ This collection of artifacts is not published and is instead shaded into Metro's
 
 ## Overview
 
-The Kotlin compiler plugin APIs are not stable and can change between versions. Some APIs get deprecated, renamed, or removed entirely. This compatibility layer provides a uniform interface (`CompatContext`) that Metro's compiler can use regardless of the underlying Kotlin version.
+The Kotlin compiler plugin APIs are not stable and can change between versions. Some APIs get deprecated, renamed, or removed entirely. This compatibility layer gives Metro's compiler one set of declarations to call regardless of the underlying Kotlin version.
 
 ## IDE Plugin
 
@@ -14,7 +14,7 @@ The Kotlin IDE plugin bundles its own compiler copy and can be checked at `lib/k
 
 IDE plugins can be downloaded from https://plugins.jetbrains.com/plugin/6954-kotlin/versions/stable.
 
-Note this version may not have published artifacts anywhere, so it may require picking the nearest one and specifying the appropriate `minVersion` in its factory.
+Note this version may not have published artifacts anywhere, so it may require picking the nearest one and declaring the appropriate `pre`/`post` boundary in `build.gradle.kts`.
 
 ### Extracting Compiler Version from IDE
 
@@ -26,137 +26,42 @@ Use the provided script to extract the bundled Kotlin compiler version from an A
 
 This prints the compiler version (e.g., `2.2.255-dev-255`) to stdout.
 
-### Resolving Dev Build for an IntelliJ Version
+### Fake IDE Compiler Versions
 
-Use `resolve-ij-kotlin-version.sh` to trace an `-ij`-suffixed Kotlin version back to the dev build it branched from:
-
-```bash
-./resolve-ij-kotlin-version.sh 252.28238.7
-./resolve-ij-kotlin-version.sh 252.28238.7 2.3.255-dev-255
-```
-
-This uses git ancestry analysis in `JetBrains/kotlin` to find the exact dev build:
-
-1. Fetches the Kotlin version (e.g., `2.2.20-ij252-24`) from `intellij-community`
-2. Finds the corresponding build tag (e.g., `build-2.2.20-ij252-25`) in `JetBrains/kotlin`
-3. Computes the merge-base between that tag and `master`
-4. Uses binary search to find the dev tag at that merge-base (e.g., `build-2.2.20-dev-5810`)
-
-This is more accurate than timestamp-based correlation because it uses actual git history.
-Requires `gh` (GitHub CLI).
-
-### Fetching All IDE Kotlin Version Aliases
-
-Use `fetch-all-ide-kotlin-versions.py` to enumerate recent IntelliJ IDEA and Android Studio releases and resolve their bundled Kotlin versions to alias mappings:
-
-```bash
-# Default: all channels, platform >= 251
-./fetch-all-ide-kotlin-versions.py
-
-# Filter channels
-./fetch-all-ide-kotlin-versions.py --channels stable,canary
-
-# Include older platforms
-./fetch-all-ide-kotlin-versions.py --min-major 243
-```
-
-This fetches release metadata from the JetBrains API and Google's Android Studio updates feed, then resolves each platform build to its Kotlin version via `intellij-community` tags on GitHub. The output includes a copy-pasteable `mapOf(...)` for `BUILT_IN_COMPILER_VERSION_ALIASES` in `build.gradle.kts`.
-
-Requires `python3` and `gh` (GitHub CLI).
+Android Studio canary builds report a fake compiler version such as `2.3.255-dev-255`. Mapping those back to the real Kotlin version is handled by the compiler plugin devkit, which ships its own IDE-build-to-Kotlin-version table and resolves it from the running IDE's build number.
 
 ## Architecture
 
-### Core Interface
+Compatibility is expressed as `expect` declarations in `commonMain`, with an `actual` per version bracket. Each bracket is a source set created by the `applyPluginDevKitHierarchyTemplate` block in `build.gradle.kts`, which declares boundaries as `pre`/`post` pairs around a Kotlin version:
 
-The `CompatContext` interface defines the contract for version-specific operations.
-
-### Version-Specific Implementations
-
-Each supported Kotlin version has its own module with a corresponding implementation:
-
-- `k2220/` - Kotlin 2.2.20 compatibility
-- `k230_dev9673/` - Kotlin 2.3.0-dev-9673 compatibility
-- etc etc.
-
-Each module contains:
-- `CompatContextImpl` - Version-specific implementation
-- `Factory` - Creates instances for that Kotlin version
-- Service loader configuration in `META-INF/services/`
-
-### Service Discovery
-
-The compatibility layer uses Java's `ServiceLoader` mechanism to discover available implementations at runtime. This allows Metro to automatically select the appropriate implementation based on the available Kotlin version.
-
-## Adding Support for New Kotlin Versions
-
-### Automatic Generation
-
-Use the provided script to generate a skeleton for a new Kotlin version:
-
-```bash
-cd compiler-compat
-./generate-compat-module.sh 2.4.0-Beta1
+```
+pre24Main/       // < 2.4.0
+post24Main/      // >= 2.4.0
+pre2420Beta2Main // < 2.4.20-Beta2
+...
 ```
 
-This will create:
-- Module directory structure (`k240_Beta1/`)
-- Build configuration files
-- Skeleton implementation with TODOs
-- Service loader configuration
+`preDev`/`postDev` variants split on a dev-build boundary rather than a release. Declarations carry a `@CompatApi(since = ..., reason = ...)` annotation recording which Kotlin version forced the split and why.
 
-1. **Implement the compatibility methods:**
-   Edit the generated `CompatContextImpl.kt` and replace the `TODO()` calls with actual implementations based on the available APIs in that Kotlin version.
+### Adding Support for a New Kotlin Version
 
-2. **Test the implementation:**
-   Run the compiler tests with the new Kotlin version to ensure compatibility.
+Most versions need nothing at all — they compile against the nearest existing bracket. When a version does break an API:
 
-### Version Naming Convention
+1. Add the `pre`/`post` boundary for it to the `applyPluginDevKitHierarchyTemplate` block in `build.gradle.kts`, nested at the right point in the existing chain.
+2. Add the `expect` declaration to `commonMain` with a `@CompatApi` annotation, and an `actual` in each new source set.
+3. Run the compiler tests against that version, e.g. `./metrow test --version 2.4.20-Beta1`.
 
-The script automatically converts Kotlin versions to valid JVM package names:
+Which versions CI tests against is a separate concern — the devkit resolves that from the `org.jetbrains.kotlin.compiler.plugin.devkit.*` properties in the root `gradle.properties`. Run `./gradlew :compiler-compat:compilerVersions` to print the current set.
 
-- Dots are removed: `2.3.0` → `230`
-- Dashes become underscores: `2.3.0-dev-9673` → `230_dev_9673`
-- Module name gets `k` prefix: `k230_dev_9673`
+### Runtime Selection
 
-Examples:
-- `2.3.20` → `k2320`
-- `2.4.0-Beta1` → `k240_Beta1`
-- `2.5.0-dev-1234` → `k250_dev_1234`
+The compiler-compat artifacts are shaded into Metro's compiler plugin as a multi-release jar. At runtime the devkit's `VersionResolution` picks the bracket matching the running compiler, so a single Metro release supports every version in the range without separate builds.
 
-## Runtime Selection
-
-Metro's compiler plugin uses `ServiceLoader` to discover and select the appropriate compatibility implementation at runtime.
-
-This allows Metro to support multiple Kotlin versions without requiring separate builds or complex version detection logic.
-
-### Track-Based Resolution
-
-dev track versions (e.g., `2.3.20-dev-5706`) are handled specially to avoid issues with divergent release tracks.
-
-Kotlin's release process can create divergent version tracks:
-- **dev builds** are from the main development branch (trunk)
-- **Beta/RC builds** are cut from stable branches with different changes
-
-For example:
-- `2.3.20-dev-5706` - has API change X
-- `2.3.20-Beta1` - released from a branch, has API change X + Y
-- `2.3.20-dev-7791` - new dev build, has X + Z (not Y from Beta1)
-
-Standard semantic version comparison would incorrectly say `2.3.20-dev-7791 < 2.3.20-Beta1` (because dev < BETA in maturity ordering), potentially selecting the wrong factory.
-
-The resolution logic handles this by:
-1. If the current version is a dev build, first look for dev track factories with the same base
-   version (the same trunk lineage), comparing by build number
-2. If none match, cross base versions: lower-base dev factories and non-dev factories compete,
-   and the highest minVersion wins (e.g. a `2.4.0` stable factory outranks `2.4.0-dev-2124`)
-
-This ensures dev builds use same-lineage dev factories when available, don't regress to stale
-lower-base dev factories when a newer stable factory exists, and Beta/RC/Stable versions never
-accidentally use dev factories.
+dev track versions are special-cased there, because Kotlin's release process creates divergent tracks: `2.3.20-dev-7791` is cut from trunk while `2.3.20-Beta1` is cut from a stable branch, so plain maturity ordering (`dev < BETA`) would pick the wrong bracket. Resolution prefers same-base dev builds for a dev compiler before falling back across base versions.
 
 ## Development Notes
 
-- Always implement all interface methods, even if some are no-ops for certain versions
-- Include docs explaining version-specific behavior
+- Provide an `actual` in every bracket an `expect` covers, even if some are no-ops for certain versions
+- Record the version and reason on each declaration with `@CompatApi`
 - Test thoroughly with the target Kotlin version before releasing
-- Keep implementations focused and minimal - avoid adding version-specific extensions beyond the interface contract
+- Keep the surface focused and minimal - only add a declaration here when a version difference forces it

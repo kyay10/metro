@@ -93,7 +93,6 @@
     "enableKlibParamsCheck": false,
     "patchKlibParams": true,
     "forceEnableFirInIde": false,
-    "compilerVersionAliases": {},
     "parallelThreads": 0,
     "bufferedIcTracking": true,
     "omitRedundantMirrors": false,

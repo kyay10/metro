@@ -101,16 +101,15 @@ dependencies {
   diagnosticsDocsRuntime(libs.kotlin.compiler)
 }
 
+val someCompilation = pluginDevKit.testAgainst.first().mainCompilation
 val mainRuntimeClasspath =
-  configurations.getByName(
-    pluginDevKit.testAgainst.first().mainCompilation.runtimeDependencyConfigurationName
-  )
+  configurations.getByName(someCompilation.runtimeDependencyConfigurationName)
 
 val generateDiagnosticsDocs =
   tasks.register<JavaExec>("generateDiagnosticsDocs") {
     group = "documentation"
     description = "Generates docs/diagnostics.md from the MetroErrorCode registry."
-    classpath = mainRuntimeClasspath + diagnosticsDocsRuntime
+    classpath = mainRuntimeClasspath + someCompilation.output.allOutputs + diagnosticsDocsRuntime
     mainClass.set("dev.zacsweers.metro.compiler.diagnostics.DiagnosticsDocGenerator")
     args(diagnosticsDocsFile.asFile.absolutePath)
   }
@@ -119,7 +118,7 @@ val checkDiagnosticsDocs =
   tasks.register<JavaExec>("checkDiagnosticsDocs") {
     group = "verification"
     description = "Verifies docs/diagnostics.md is up to date with the MetroErrorCode registry."
-    classpath = mainRuntimeClasspath + diagnosticsDocsRuntime
+    classpath = mainRuntimeClasspath + someCompilation.output.allOutputs + diagnosticsDocsRuntime
     mainClass.set("dev.zacsweers.metro.compiler.diagnostics.DiagnosticsDocGenerator")
     args(diagnosticsDocsFile.asFile.absolutePath, "--check")
   }

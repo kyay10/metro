@@ -1,9 +1,5 @@
 name: Benchmark Regression
 
-env:
-  ORG_GRADLE_PROJECT_devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-  ORG_GRADLE_PROJECT_devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
-
 on:
   push:
     branches: [main]
@@ -54,8 +50,6 @@ jobs:
         with:
           encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       # Run baseline benchmark
       - name: Checkout baseline (${{ steps.refs.outputs.baseline_name }})
@@ -372,8 +366,6 @@ jobs:
         with:
           encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           cache-read-only: true
-          devKitSpaceUsername: ${{ secrets.DEVKITSPACEUSERNAME }}
-          devKitSpacePassword: ${{ secrets.DEVKITSPACEPASSWORD }}
 
       - name: Get cache key for gradle-profiler
         id: gradle-profiler-cache-key

@@ -13,36 +13,6 @@ metroArtifact {
   name.set("Metro Compiler Compat")
 }
 
-buildConfig {
-  packageName("dev.zacsweers.metro.compiler.compat")
-  kotlin {
-    useKotlinOutput {
-      internalVisibility = true
-      topLevelConstants = true
-    }
-  }
-  buildConfigField(
-    "kotlin.collections.Map<String, String>",
-    "BUILT_IN_COMPILER_VERSION_ALIASES",
-    providers
-      .fileContents(layout.projectDirectory.file("ide-mappings.txt"))
-      .asText
-      // Known tags-to-real version mappings for IDE builds.
-      // Android Studio canary builds report a fake version like "2.3.255-dev-255".
-      // The real version can be found by checking the IntelliJ tag for the studio build number:
-      // https://github.com/JetBrains/intellij-community/blob/idea/<intellij-version>/.idea/libraries/kotlinc_kotlin_compiler_common.xml
-      .map { text ->
-        text
-          .lineSequence()
-          .filter { it.isNotBlank() && !it.startsWith("#") }
-          .joinToString(prefix = "mapOf(\n", postfix = "\n)", separator = "\n,") { line ->
-            val (from, to) = line.split('=', limit = 2)
-            "  \"$from\" to \"$to\""
-          }
-      },
-  )
-}
-
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
   compilerOptions {
@@ -77,3 +47,32 @@ kotlin {
 tasks.generateTests { enabled = false }
 
 tasks.withType<Test> { failOnNoDiscoveredTests = false }
+
+// Reports the Kotlin compiler versions this build tests against and which of them the plain
+// `defaultTest` tasks use, as the devkit resolved them from the
+// `org.jetbrains.kotlin.compiler.plugin.devkit.*` properties in the root `gradle.properties`.
+// `scripts/generate-ci-matrix.sh` (and through it `./metrow` and the compatibility docs) reads them
+// back out of here, so the version set only ever lives in one place.
+tasks.register("compilerVersions") {
+  group = HelpTasksPlugin.HELP_GROUP
+  description = "Writes the Kotlin compiler versions this build tests against, oldest first."
+
+  val versions = pluginDevKit.testAgainst.map { it.version }.sorted().map { "$it" }
+  val defaultVersion = pluginDevKit.defaultTestTarget.map { "${it.version}" }
+  val versionsFile = layout.buildDirectory.file("ci/tested-compiler-versions.txt")
+  val defaultVersionFile = layout.buildDirectory.file("ci/default-compiler-version.txt")
+  inputs.property("versions", versions)
+  inputs.property("defaultVersion", defaultVersion)
+  outputs.files(versionsFile, defaultVersionFile)
+  doLast {
+    val defaultVersion = defaultVersion.get()
+    logger.lifecycle(
+      versions.joinToString("\n") { if (it == defaultVersion) "$it (default)" else it }
+    )
+    versionsFile.get().asFile.apply {
+      parentFile.mkdirs()
+      writeText(versions.joinToString("\n", postfix = "\n"))
+    }
+    defaultVersionFile.get().asFile.writeText("$defaultVersion\n")
+  }
+}

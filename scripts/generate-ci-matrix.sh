@@ -6,8 +6,9 @@
 set -euo pipefail
 
 # Generate CI matrix for compiler-compat modules
-# This script reads versions from compiler-compat/version-aliases.txt
-# and generates a JSON matrix object for use in GitHub Actions
+# Both the version set and the default version come from the `:compiler-compat:compilerVersions`
+# Gradle task, which reports whatever the compiler plugin devkit resolved from the
+# `org.jetbrains.kotlin.compiler.plugin.devkit.*` properties in gradle.properties.
 
 # --versions-only flag is for ./metrow check use to only print the versions and exit
 versions_only=false
@@ -15,30 +16,45 @@ if [[ "${1:-}" == "--versions-only" ]]; then
     versions_only=true
 fi
 
-ALIASES_FILE="compiler-compat/version-aliases.txt"
-
-# First, validate the version-aliases.txt file
-if [[ "$versions_only" != true ]]; then
-    echo "🔍 Validating version-aliases.txt..."
-    echo ""
-fi
+VERSIONS_TASK=":compiler-compat:compilerVersions"
+VERSIONS_FILE="compiler-compat/build/ci/tested-compiler-versions.txt"
+DEFAULT_VERSION_FILE="compiler-compat/build/ci/default-compiler-version.txt"
 
 if [[ "$versions_only" != true ]]; then
-    echo "🔍 Reading versions from $ALIASES_FILE..."
+    echo "🔍 Reading versions from $VERSIONS_TASK..."
 fi
 
-# Read versions from version-aliases.txt (skip comments and blank lines)
-declared_versions=$(grep -v '^#' "$ALIASES_FILE" | grep -v '^[[:space:]]*$')
-versions=$(echo "$declared_versions" | sort)
+# On CI, go through the wrapper script so this job uses the same worker and heap limits as the rest
+if [[ -n "${CI:-}" && -x scripts/run-ci-gradle.sh ]]; then
+    gradle=(./scripts/run-ci-gradle.sh)
+else
+    gradle=(./gradlew)
+fi
 
-if [ -z "$versions" ]; then
-    if [[ "$versions_only" != true ]]; then
-        echo "❌ No versions found in $ALIASES_FILE"
-    fi
+# Redirect Gradle's own output so it can't be mistaken for the version list in --versions-only mode
+if ! "${gradle[@]}" --quiet "$VERSIONS_TASK" >&2; then
+    echo "❌ $VERSIONS_TASK failed" >&2
     exit 1
 fi
 
-latest_kotlin_version=$(echo "$declared_versions" | tail -n 1)
+# Versions come out oldest-first, which CI relies on to pick the newest tested version
+versions=$([ -f "$VERSIONS_FILE" ] && grep -v '^[[:space:]]*$' "$VERSIONS_FILE" || true)
+
+if [ -z "$versions" ]; then
+    echo "❌ No versions reported by $VERSIONS_TASK in $VERSIONS_FILE" >&2
+    exit 1
+fi
+
+latest_kotlin_version=$(echo "$versions" | tail -n 1)
+
+# The version the plain `test`/`defaultTest` tasks run against, i.e. the build's own Kotlin unless
+# `-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion` overrides it
+default_kotlin_version=$(head -n 1 "$DEFAULT_VERSION_FILE")
+
+if [ -z "$default_kotlin_version" ]; then
+    echo "❌ No default version reported by $VERSIONS_TASK in $DEFAULT_VERSION_FILE" >&2
+    exit 1
+fi
 
 if [[ "$versions_only" == true ]]; then
     # Just output the versions, one per line
@@ -48,7 +64,11 @@ fi
 
 echo "📦 Found versions:"
 for version in $versions; do
-    echo "  - $version"
+    if [ "$version" = "$default_kotlin_version" ]; then
+        echo "  - $version (default)"
+    else
+        echo "  - $version"
+    fi
 done
 
 # Convert to JSON matrix object
@@ -82,6 +102,7 @@ fi
 # Output for GitHub Actions (if running in CI)
 if [ "${GITHUB_OUTPUT:-}" ]; then
     echo "matrix=$matrix_json" >> "$GITHUB_OUTPUT"
+    echo "default_kotlin_version=$default_kotlin_version" >> "$GITHUB_OUTPUT"
     echo "latest_kotlin_version=$latest_kotlin_version" >> "$GITHUB_OUTPUT"
     echo "🚀 Matrix written to GITHUB_OUTPUT"
 fi

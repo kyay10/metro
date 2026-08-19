@@ -40,8 +40,7 @@ import org.jetbrains.kotlin.fir.toEffectiveVisibility
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
-import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
-import org.jetbrains.kotlin.fir.types.toLookupTag
+import org.jetbrains.kotlin.fir.types.constructClassLikeType
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irReturn
@@ -226,8 +225,7 @@ internal class GenerateProvidesInGraphExtension(session: FirSession) :
             arguments += buildResolvedQualifierCompat(scopeClassId, scopeSymbol, scopeType)
           }
           coneTypeOrNull =
-            ConeClassLikeTypeImpl(
-              StandardClassIds.KClass.toLookupTag(),
+            StandardClassIds.KClass.constructClassLikeType(
               arrayOf(scopeType),
               isMarkedNullable = false,
             )

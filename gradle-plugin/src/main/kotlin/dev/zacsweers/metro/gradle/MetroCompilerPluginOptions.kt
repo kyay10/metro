@@ -136,14 +136,6 @@ internal fun Project.metroCompilerPluginOptions(
     add(metroOption(MetroOption.PATCH_KLIB_PARAMS, extension.patchKlibParams))
     add(metroOption(MetroOption.FORCE_ENABLE_FIR_IN_IDE, extension.forceEnableFirInIde))
     add(metroOption(MetroOption.COMPILER_VERSION, extension.compilerVersion))
-    add(
-      metroOption(
-        MetroOption.COMPILER_VERSION_ALIASES,
-        extension.compilerVersionAliases.map { map ->
-          map.entries.joinToString(":") { "${it.key}=${it.value}" }
-        },
-      )
-    )
     add(metroOption(MetroOption.ENABLE_FUNCTION_PROVIDERS, extension.enableFunctionProviders))
     add(metroOption(MetroOption.ENABLE_SUSPEND_PROVIDERS, extension.enableSuspendProviders))
     add(metroOption(MetroOption.DESUGARED_PROVIDER_SEVERITY, extension.desugaredProviderSeverity))

@@ -343,20 +343,6 @@ constructor(
   public val compilerVersion: Property<String> = objects.metroProperty("metro.compilerVersion", "")
 
   /**
-   * Compiler version aliases mapping fake IDE versions to their real compiler versions.
-   *
-   * This is useful for IDE builds (e.g., Android Studio canary) that report a fake Kotlin compiler
-   * version. When Metro detects a compiler version that matches an alias key, it will use the
-   * corresponding value as the real version.
-   *
-   * User-defined aliases take priority over built-in aliases.
-   *
-   * Empty by default.
-   */
-  public val compilerVersionAliases: MapProperty<String, String> =
-    objects.mapProperty(String::class.java, String::class.java).convention(emptyMap())
-
-  /**
    * Treats `() -> T` as a provider type.
    *
    * When enabled, `() -> T` can defer dependency retrieval. Existing `Provider<T>` values also work

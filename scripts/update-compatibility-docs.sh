@@ -5,17 +5,17 @@
 
 set -euo pipefail
 
-# Updates docs/compatibility.md with tested versions from compiler-compat/version-aliases.txt
-# and IDE tested versions from ide-integration-tests/ide-versions.txt.
+# Updates docs/compatibility.md with the Kotlin versions CI tests against and IDE tested versions
+# from ide-integration-tests/ide-versions.txt.
 # Also updates the Kotlin version badge in README.md
 
-ALIASES_FILE="compiler-compat/version-aliases.txt"
+MATRIX_SCRIPT="scripts/generate-ci-matrix.sh"
 IDE_VERSIONS_FILE="ide-integration-tests/ide-versions.txt"
 DOCS_FILE="docs/compatibility.md"
 README_FILE="README.md"
 
-if [ ! -f "$ALIASES_FILE" ]; then
-    echo "❌ Error: $ALIASES_FILE not found"
+if [ ! -f "$MATRIX_SCRIPT" ]; then
+    echo "❌ Error: $MATRIX_SCRIPT not found"
     exit 1
 fi
 
@@ -29,13 +29,15 @@ if [ ! -f "$README_FILE" ]; then
     exit 1
 fi
 
-echo "🔄 Updating $DOCS_FILE with tested versions from $ALIASES_FILE..."
+echo "🔄 Updating $DOCS_FILE with the tested Kotlin versions..."
 
-# Read versions from version-aliases.txt (skip comments and blank lines)
-versions=$(grep -v '^#' "$ALIASES_FILE" | grep -v '^[[:space:]]*$' | sort -V -r)
+# Ask Gradle which versions this build tests against. They come out oldest-first; the table lists
+# them newest-first.
+ascending_versions=$("./$MATRIX_SCRIPT" --versions-only)
+versions=$(echo "$ascending_versions" | awk '{ lines[NR] = $0 } END { for (i = NR; i >= 1; i--) print lines[i] }')
 
 if [ -z "$versions" ]; then
-    echo "❌ Error: No versions found in $ALIASES_FILE"
+    echo "❌ Error: No versions reported by $MATRIX_SCRIPT"
     exit 1
 fi
 
@@ -69,7 +71,7 @@ done
 tested_section="$tested_section
 
 !!! note
-    Versions without dedicated compiler-compat modules will use the nearest available implementation _below_ that version. See [\`compiler-compat/version-aliases.txt\`](https://github.com/ZacSweers/metro/blob/main/compiler-compat/version-aliases.txt) for the full list.
+    Versions without a dedicated compatibility source set will use the nearest available implementation _below_ that version. The tested set is derived from the \`org.jetbrains.kotlin.compiler.plugin.devkit.*\` properties in [\`gradle.properties\`](https://github.com/ZacSweers/metro/blob/main/gradle.properties); run \`./gradlew :compiler-compat:compilerVersions\` to print it.
 "
 
 # Add IDE tested versions if ide-versions.txt exists
@@ -175,9 +177,9 @@ echo "✅ Updated $DOCS_FILE with $(echo "$versions" | wc -l | tr -d ' ') tested
 echo ""
 echo "🔄 Updating $README_FILE Kotlin version badge..."
 
-# Get min and max versions (sorted ascending for min, descending for max)
-min_version=$(echo "$versions" | sort -V | head -n 1)
-max_version=$(echo "$versions" | sort -V | tail -n 1)
+# Get min and max versions
+min_version=$(echo "$ascending_versions" | head -n 1)
+max_version=$(echo "$ascending_versions" | tail -n 1)
 
 # Escape dots and hyphens for the badge URL (shields.io uses -- for hyphen, . is ok)
 # The badge format is: Kotlin-MIN--MAX where -- represents a hyphen in the version

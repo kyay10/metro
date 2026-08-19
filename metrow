@@ -5,6 +5,8 @@ set -euo pipefail
 # Subprojects that can be targeted with -p flag
 ALL_SUBPROJECTS=("samples" "benchmark" "ide-integration-tests" "idea-plugin")
 
+DEVKIT="org.jetbrains.kotlin.compiler.plugin.devkit"
+
 # Run a gradle command across root and specified subprojects
 # Usage: run_gradle_all "command args" [subprojects...]
 # If no subprojects specified, runs on root + all subprojects
@@ -28,40 +30,61 @@ run_gradle_all() {
     done
 }
 
-# Function to run checks with optional compiler version
+# Function to run the full checks
+# No version narrowing here: `check` depends on the per-version test task of every version the
+# devkit registers, so one invocation already covers the whole compiler matrix alongside the
+# version-independent verification (apiCheck, metalava, lint, dependencyGuard). Use `metrow test`
+# when you want a single version.
 run_checks() {
-    local compiler_version="$1"
-    local version_flag=""
+    echo "Running checks against every registered compiler version..."
 
-    if [[ -n "$compiler_version" ]]; then
-        version_flag="-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=$compiler_version"
-        echo "Running checks with Kotlin version $compiler_version..."
-    else
-        echo "Running checks..."
-    fi
-
-    ./gradlew check -x dokkaGeneratePublicationHtml $version_flag
+    ./gradlew check -x dokkaGeneratePublicationHtml
 }
 
-# Function to run tests with optional compiler version
-run_tests() {
-    local compiler_version="$1"
-    local version_flag=""
-
-    if [[ -n "$compiler_version" ]]; then
-        version_flag="-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=$compiler_version"
-        echo "Running tests with Kotlin version $compiler_version..."
-    else
-        echo "Running tests..."
-    fi
-
-    ./gradlew :compiler:defaultTest :compiler-tests:defaultTest :gradle-plugin:functionalTest :runtime:allTests :runtime-coroutines:allTests $version_flag --quiet -x logLinkDokkaGeneratePublicationHtml -x dokkaGeneratePublicationHtml
+# Function to run the samples suite, shared by the test entry points
+run_samples_tests() {
     # We have to regen package locks because the kotlin yarn/node/etc build tooling is brittle
     ./gradlew -p samples kotlinWasmUpgradePackageLock kotlinUpgradePackageLock --rerun-tasks --no-build-cache --no-configuration-cache --quiet
     ./gradlew -p samples :integration-tests:allTests --quiet
 }
 
-case "$1" in
+# Function to run tests with optional compiler version
+# `defaultTest`/`functionalTest` delegate to whichever version `defaultTestVersion` selects.
+run_tests() {
+    local compiler_version="$1"
+    local args=(
+        :compiler:defaultTest :compiler-tests:defaultTest :gradle-plugin:functionalTest
+        :runtime:allTests :runtime-coroutines:allTests
+        --quiet -x logLinkDokkaGeneratePublicationHtml -x dokkaGeneratePublicationHtml
+    )
+
+    if [[ -n "$compiler_version" ]]; then
+        args+=("-P$DEVKIT.defaultTestVersion=$compiler_version")
+        echo "Running tests with Kotlin version $compiler_version..."
+    else
+        echo "Running tests with the build's default Kotlin version..."
+    fi
+
+    ./gradlew "${args[@]}"
+    run_samples_tests
+}
+
+# Function to run tests against every compiler version the devkit registers
+# These aggregates fan out to every version's test task within a single build, so Gradle can
+# schedule them in parallel instead of re-running the whole suite once per version. Note
+# gradle-plugin is not multiplatform, so it has no `allTests` — the devkit gives it
+# `allVersionedFunctionalTests` instead.
+run_all_tests() {
+    echo "Running tests against every registered compiler version..."
+
+    ./gradlew :compiler:allTests :compiler-tests:allTests \
+        :gradle-plugin:allVersionedFunctionalTests \
+        :runtime:allTests :runtime-coroutines:allTests \
+        --quiet -x logLinkDokkaGeneratePublicationHtml -x dokkaGeneratePublicationHtml
+    run_samples_tests
+}
+
+case "${1:-}" in
    "publish")
        version=""
        local=false
@@ -144,18 +167,12 @@ case "$1" in
        ;;
 
    "check")
-       all=false
-       version=""
-
        while [[ $# -gt 1 ]]; do
            case "$2" in
-               --all)
-                   all=true
-                   shift
-                   ;;
-               --version)
-                   version="$3"
-                   shift 2
+               --all|--version)
+                   echo "check takes no arguments — it always covers every registered compiler version."
+                   echo "Use 'metrow test' for per-version runs; it accepts --all and --version."
+                   exit 1
                    ;;
                *)
                    echo "Unknown check argument: $2"
@@ -164,27 +181,7 @@ case "$1" in
            esac
        done
 
-       if [[ "$all" = true ]]; then
-           echo "Running checks against all compiler versions..."
-
-           # Get all available versions using the CI script
-           if [[ ! -f "scripts/generate-ci-matrix.sh" ]]; then
-               echo "Error: scripts/generate-ci-matrix.sh not found"
-               exit 1
-           fi
-
-           # Get versions using the script's --versions-only mode
-           versions=$(./scripts/generate-ci-matrix.sh --versions-only | tr '\n' ' ')
-
-           echo "Testing against versions: $versions"
-
-           for ver in $versions; do
-               echo "=== Testing with Kotlin $ver ==="
-               run_checks "$ver" || exit 1
-           done
-       else
-           run_checks "$version"
-       fi
+       run_checks
 
        # Run samples last
        ./gradlew -p samples check
@@ -212,21 +209,11 @@ case "$1" in
        done
 
        if [[ "$all" = true ]]; then
-           echo "Running tests against all compiler versions..."
-
-           if [[ ! -f "scripts/generate-ci-matrix.sh" ]]; then
-               echo "Error: scripts/generate-ci-matrix.sh not found"
+           if [[ -n "$version" ]]; then
+               echo "Cannot combine --all with --version"
                exit 1
            fi
-
-           versions=$(./scripts/generate-ci-matrix.sh --versions-only | tr '\n' ' ')
-
-           echo "Testing against versions: $versions"
-
-           for ver in $versions; do
-               echo "=== Testing with Kotlin $ver ==="
-               run_tests "$ver" || exit 1
-           done
+           run_all_tests
        else
            run_tests "$version"
        fi
@@ -275,7 +262,7 @@ case "$1" in
 
        version_flag=""
        if [[ -n "$version" ]]; then
-           version_flag="-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=$version"
+           version_flag="-P$DEVKIT.defaultTestVersion=$version"
        fi
 
        # Annoyingly, the apiDump and package lock tasks have caching issues
@@ -312,14 +299,6 @@ case "$1" in
        echo "Upgrading samples package locks..."
        # shellcheck disable=SC2086
        ./gradlew -p samples kotlinWasmUpgradePackageLock kotlinUpgradePackageLock --rerun-tasks --no-build-cache --no-configuration-cache --quiet $version_flag
-       ;;
-
-   "gen-compat")
-       if [[ $# -lt 2 ]]; then
-           echo "Usage: metrow gen-compat <kotlin-version>"
-           exit 1
-       fi
-       ./compiler-compat/generate-compat-module.sh "$2"
        ;;
 
    "trace")
@@ -364,7 +343,7 @@ case "$1" in
        ;;
 
    *)
-       echo "Usage: metrow (publish|publish-idea-plugin|check|test|clean|format|regen|gen-compat|trace|update-gradle)"
+       echo "Usage: metrow (publish|publish-idea-plugin|check|test|clean|format|regen|trace|update-gradle)"
        echo ""
        echo "publish options:"
        echo "  --version <version>  Specify version for publishing"
@@ -375,12 +354,11 @@ case "$1" in
        echo "  --local              Build the IDE plugin ZIP locally instead of publishing"
        echo "  --dry-run            Preview publish tasks without publishing"
        echo ""
-       echo "check options:"
-       echo "  --all                Test against all available compiler versions"
-       echo "  --version <version>  Test against specific compiler version"
+       echo "check takes no options — it always runs the full checks against every"
+       echo "compiler version the devkit registers."
        echo ""
        echo "test options:"
-       echo "  --all                Test against all available compiler versions"
+       echo "  --all                Test against every registered compiler version in one build"
        echo "  --version <version>  Test against specific compiler version"
        echo ""
        echo "regen options:"

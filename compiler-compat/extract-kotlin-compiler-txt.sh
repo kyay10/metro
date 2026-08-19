@@ -137,19 +137,5 @@ if [ "$IS_IJ_VERSION" = true ] || [ -n "$INTELLIJ_VERSION" ]; then
         echo "  https://github.com/JetBrains/intellij-community/blob/idea/$INTELLIJ_VERSION/.idea/libraries/kotlinc_kotlin_compiler_common.xml"
       fi
     fi
-
-    # Resolve the dev build branch point if gh is available
-    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-    RESOLVE_SCRIPT="$SCRIPT_DIR/resolve-ij-kotlin-version.sh"
-    if [ -x "$RESOLVE_SCRIPT" ] && command -v gh &>/dev/null; then
-      echo ""
-      echo "════════════════════════════════════════════════════════════"
-      echo ""
-      "$RESOLVE_SCRIPT" "$INTELLIJ_VERSION" "$COMPILER_VERSION"
-    fi
-  elif [ "$IS_IJ_VERSION" = true ]; then
-    echo "Detected -ij compiler version but could not determine IntelliJ"
-    echo "build number. Run the resolve script manually:"
-    echo "  ./resolve-ij-kotlin-version.sh <intellij-version> $COMPILER_VERSION"
   fi
 fi

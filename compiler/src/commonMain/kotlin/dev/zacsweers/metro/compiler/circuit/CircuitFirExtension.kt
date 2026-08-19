@@ -69,9 +69,7 @@ import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.constructClassLikeType
-import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.types.isUnit
-import org.jetbrains.kotlin.fir.types.toLookupTag
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
@@ -626,8 +624,7 @@ public class CircuitFirExtension(session: FirSession) :
             arguments += buildResolvedQualifierCompat(scopeClassId, scopeSymbol, scopeType)
           }
           coneTypeOrNull =
-            ConeClassLikeTypeImpl(
-              StandardClassIds.KClass.toLookupTag(),
+            StandardClassIds.KClass.constructClassLikeType(
               arrayOf(scopeType),
               isMarkedNullable = false,
             )
