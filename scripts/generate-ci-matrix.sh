@@ -18,6 +18,7 @@ fi
 
 VERSIONS_TASK=":compiler-compat:compilerVersions"
 VERSIONS_FILE="compiler-compat/build/ci/tested-compiler-versions.txt"
+IDE_ONLY_VERSIONS_FILE="compiler-compat/build/ci/ide-only-compiler-versions.txt"
 DEFAULT_VERSION_FILE="compiler-compat/build/ci/default-compiler-version.txt"
 
 if [[ "$versions_only" != true ]]; then
@@ -47,6 +48,10 @@ fi
 
 latest_kotlin_version=$(echo "$versions" | tail -n 1)
 
+# Versions that only exist because an IDE build ships them. The devkit Gradle plugin
+# won't register these as functionalTest targets, so the matrix flags them and CI skips that step.
+ide_only_versions=$([ -f "$IDE_ONLY_VERSIONS_FILE" ] && grep -v '^[[:space:]]*$' "$IDE_ONLY_VERSIONS_FILE" || true)
+
 # The version the plain `test`/`defaultTest` tasks run against, i.e. the build's own Kotlin unless
 # `-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion` overrides it
 default_kotlin_version=$(head -n 1 "$DEFAULT_VERSION_FILE")
@@ -62,16 +67,24 @@ if [[ "$versions_only" == true ]]; then
     exit 0
 fi
 
+is_ide_only() {
+    printf '%s\n' "$ide_only_versions" | grep -Fxq "$1"
+}
+
 echo "📦 Found versions:"
 for version in $versions; do
-    if [ "$version" = "$default_kotlin_version" ]; then
+    if is_ide_only "$version"; then
+        echo "  - $version (IDE only)"
+    elif [ "$version" = "$default_kotlin_version" ]; then
         echo "  - $version (default)"
     else
         echo "  - $version"
     fi
 done
 
-# Convert to JSON matrix object
+# Convert to a JSON matrix. Entries go under `include` so each can carry `for-ide` next to its
+# version; with no other matrix keys GitHub still creates exactly one job per entry, and
+# `matrix.kotlin-compiler` keeps working unchanged.
 json_array="["
 first=true
 for version in $versions; do
@@ -81,12 +94,20 @@ for version in $versions; do
         json_array="$json_array,"
     fi
 
-    json_array="$json_array\"$version\""
+    # Quoted deliberately: GitHub's expression comparisons coerce across types, so a JSON boolean
+    # here would hinge on whether it survives `fromJson` as a boolean or a string. A string is
+    # unambiguous against `matrix.for-ide == 'true'`.
+    if is_ide_only "$version"; then
+        for_ide='"true"'
+    else
+        for_ide='"false"'
+    fi
+
+    json_array="$json_array{\"kotlin-compiler\":\"$version\",\"for-ide\":$for_ide}"
 done
 json_array="$json_array]"
 
-# Create the matrix JSON object with the kotlin-compiler key
-matrix_json="{\"kotlin-compiler\":$json_array}"
+matrix_json="{\"include\":$json_array}"
 
 echo ""
 echo "✅ Generated matrix JSON:"

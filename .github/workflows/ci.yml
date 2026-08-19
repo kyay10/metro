@@ -174,8 +174,10 @@ jobs:
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
+      # Skipped for IDE-only versions: the devkit Gradle plugin won't register those as
+      # functionalTest targets on its own (`registerVersion` bails on `forIde`)
       - name: Test Gradle plugin
-        if: ${{ !cancelled() && steps.generate_tests.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.generate_tests.outcome == 'success' && matrix.for-ide != 'true' }}
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:functionalTest --continue --quiet \
             '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
