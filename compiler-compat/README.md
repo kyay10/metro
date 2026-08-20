@@ -51,7 +51,7 @@ Most versions need nothing at all — they compile against the nearest existing 
 2. Add the `expect` declaration to `commonMain` with a `@CompatApi` annotation, and an `actual` in each new source set.
 3. Run the compiler tests against that version, e.g. `./metrow test --version 2.4.20-Beta1`.
 
-Which versions CI tests against is a separate concern — the devkit resolves that from the `org.jetbrains.kotlin.compiler.plugin.devkit.*` properties in the root `gradle.properties`. Run `./gradlew :compiler-compat:compilerVersions` to print the current set.
+Which versions CI tests against is a separate concern — the devkit resolves that from the `kotlin.compiler.plugin.devkit.*` properties in the root `gradle.properties`. Run `./gradlew :compiler-compat:compilerVersions` to print the current set.
 
 ### Runtime Selection
 

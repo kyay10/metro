@@ -5,7 +5,7 @@ set -euo pipefail
 # Subprojects that can be targeted with -p flag
 ALL_SUBPROJECTS=("samples" "benchmark" "ide-integration-tests" "idea-plugin")
 
-DEVKIT="org.jetbrains.kotlin.compiler.plugin.devkit"
+DEVKIT="kotlin.compiler.plugin.devkit"
 
 # Run a gradle command across root and specified subprojects
 # Usage: run_gradle_all "command args" [subprojects...]

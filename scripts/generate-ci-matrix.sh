@@ -8,7 +8,7 @@ set -euo pipefail
 # Generate CI matrix for compiler-compat modules
 # Both the version set and the default version come from the `:compiler-compat:compilerVersions`
 # Gradle task, which reports whatever the compiler plugin devkit resolved from the
-# `org.jetbrains.kotlin.compiler.plugin.devkit.*` properties in gradle.properties.
+# `kotlin.compiler.plugin.devkit.*` properties in gradle.properties.
 
 # --versions-only flag is for ./metrow check use to only print the versions and exit
 versions_only=false
@@ -53,7 +53,7 @@ latest_kotlin_version=$(echo "$versions" | tail -n 1)
 ide_only_versions=$([ -f "$IDE_ONLY_VERSIONS_FILE" ] && grep -v '^[[:space:]]*$' "$IDE_ONLY_VERSIONS_FILE" || true)
 
 # The version the plain `test`/`defaultTest` tasks run against, i.e. the build's own Kotlin unless
-# `-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion` overrides it
+# `-Pkotlin.compiler.plugin.devkit.defaultTestVersion` overrides it
 default_kotlin_version=$(head -n 1 "$DEFAULT_VERSION_FILE")
 
 if [ -z "$default_kotlin_version" ]; then

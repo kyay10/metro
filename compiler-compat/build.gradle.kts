@@ -50,7 +50,7 @@ tasks.withType<Test> { failOnNoDiscoveredTests = false }
 
 // Reports the Kotlin compiler versions this build tests against and which of them the plain
 // `defaultTest` tasks use, as the devkit resolved them from the
-// `org.jetbrains.kotlin.compiler.plugin.devkit.*` properties in the root `gradle.properties`.
+// `kotlin.compiler.plugin.devkit.*` properties in the root `gradle.properties`.
 // `scripts/generate-ci-matrix.sh` (and through it `./metrow` and the compatibility docs) reads them
 // back out of here, so the version set only ever lives in one place.
 tasks.register("compilerVersions") {

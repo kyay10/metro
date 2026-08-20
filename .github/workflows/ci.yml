@@ -22,10 +22,10 @@ env:
   # empty one means "just the build's own Kotlin"). The build's own Kotlin always has a target, so
   # this narrows to one version, or two when the requested one differs from it.
   DEVKIT_NARROW: >-
-    -Porg.jetbrains.kotlin.compiler.plugin.devkit.minCliVersion=99.0.0
-    -Porg.jetbrains.kotlin.compiler.plugin.devkit.maxCliVersion=99.9.9
-    -Porg.jetbrains.kotlin.compiler.plugin.devkit.minIdeaVersion=9999
-    -Porg.jetbrains.kotlin.compiler.plugin.devkit.useLatestDev=false
+    -Pkotlin.compiler.plugin.devkit.minCliVersion=99.0.0
+    -Pkotlin.compiler.plugin.devkit.maxCliVersion=99.9.9
+    -Pkotlin.compiler.plugin.devkit.minIdeaVersion=9999
+    -Pkotlin.compiler.plugin.devkit.useLatestDev=false
 
 jobs:
   format:
@@ -108,7 +108,7 @@ jobs:
             -x :compiler:check \
             -x :compiler-tests:check \
             -x :gradle-plugin:check \
-            $DEVKIT_NARROW '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: (Fail-only) Upload reports
@@ -158,18 +158,18 @@ jobs:
         id: generate_tests
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:generateTests --quiet \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            '-Pkotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
             $DEVKIT_NARROW \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
+            '-Pkotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: Test compiler
         run: |
           ./scripts/run-ci-gradle.sh :compiler:defaultTest :compiler-tests:defaultTest --continue --quiet \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            '-Pkotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
             $DEVKIT_NARROW \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
+            '-Pkotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -180,9 +180,9 @@ jobs:
         if: ${{ !cancelled() && steps.generate_tests.outcome == 'success' && matrix.for-ide != 'true' }}
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:functionalTest --continue --quiet \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            '-Pkotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
             $DEVKIT_NARROW \
-            '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
+            '-Pkotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.functionalTestKmpTarget=jvm \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -285,7 +285,7 @@ jobs:
       - name: Generate tests
         run: |
           ./gradlew :compiler-tests:generateTests --quiet \
-            $DEVKIT_NARROW '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: Run JS box smoke tests
@@ -367,7 +367,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           ./gradlew :gradle-plugin:functionalTest --continue --quiet \
-            $DEVKIT_NARROW '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
             -Pmetro.functionalTestKmpTarget=${{ matrix.target }}
 
       - name: (Fail-only) Upload reports
@@ -502,7 +502,7 @@ jobs:
         # mingwX64, etc.), so each runner covers a different native target naturally.
         run: |
           ./gradlew :runtime:allTests :runtime-coroutines:allTests :gradle-plugin:functionalTest --continue --quiet \
-            $DEVKIT_NARROW '-Porg.jetbrains.kotlin.compiler.plugin.devkit.testAgainst=' \
+            $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
             -Pmetro.functionalTestKmpTarget=all
 
       - name: Check samples

@@ -71,7 +71,7 @@ done
 tested_section="$tested_section
 
 !!! note
-    Versions without a dedicated compatibility source set will use the nearest available implementation _below_ that version. The tested set is derived from the \`org.jetbrains.kotlin.compiler.plugin.devkit.*\` properties in [\`gradle.properties\`](https://github.com/ZacSweers/metro/blob/main/gradle.properties); run \`./gradlew :compiler-compat:compilerVersions\` to print it.
+    Versions without a dedicated compatibility source set will use the nearest available implementation _below_ that version. The tested set is derived from the \`kotlin.compiler.plugin.devkit.*\` properties in [\`gradle.properties\`](https://github.com/ZacSweers/metro/blob/main/gradle.properties); run \`./gradlew :compiler-compat:compilerVersions\` to print it.
 "
 
 # Add IDE tested versions if ide-versions.txt exists
