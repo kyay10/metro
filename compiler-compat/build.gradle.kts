@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-
 // Copyright (C) 2025 Zac Sweers
 // SPDX-License-Identifier: Apache-2.0
 plugins {
@@ -13,33 +11,19 @@ metroArtifact {
   name.set("Metro Compiler Compat")
 }
 
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
   compilerOptions {
     optIn.add("org.jetbrains.kotlin.config.MessageCollectorAccess")
   }
-  pluginDevKit {
-    applyPluginDevKitHierarchyTemplate {
-      postDev(2, 4, "post24Dev") {
-        post("2.4.0", "post24") {
-          postDev(2, 4, 20, "post2420Dev") {
-            post("2.4.20-Beta2", "post2420Beta2") {
-              postDev(2, 5, "post25Dev")
-            }
-          }
-        }
-      }
+}
 
-      preDev(2, 5, "pre25Dev") {
-        pre("2.4.20-Beta2", "pre2420Beta2") {
-          preDev(2, 4, 20, "pre2420Dev") {
-            pre("2.4.0", "pre24") {
-              preDev(2, 4, "pre24Dev")
-            }
-          }
-        }
-      }
-    }
+pluginDevKit {
+  versionHierarchy {
+    splitDev(2, 4)
+    split("2.4.0")
+    splitDev(2, 4, 20)
+    split("2.4.20-Beta2")
+    splitDev(2, 5)
   }
 }
 

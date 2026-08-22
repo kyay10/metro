@@ -32,7 +32,7 @@ Android Studio canary builds report a fake compiler version such as `2.3.255-dev
 
 ## Architecture
 
-Compatibility is expressed as `expect` declarations in `commonMain`, with an `actual` per version bracket. Each bracket is a source set created by the `applyPluginDevKitHierarchyTemplate` block in `build.gradle.kts`, which declares boundaries as `pre`/`post` pairs around a Kotlin version:
+Compatibility is expressed as `expect` declarations in `commonMain`, with an `actual` per version bracket. Each bracket is a source set created by the `versionHierarchy` block in `build.gradle.kts`, which declares boundaries as `pre`/`post` pairs around a Kotlin version:
 
 ```
 pre24Main/       // < 2.4.0
@@ -47,7 +47,7 @@ pre2420Beta2Main // < 2.4.20-Beta2
 
 Most versions need nothing at all — they compile against the nearest existing bracket. When a version does break an API:
 
-1. Add the `pre`/`post` boundary for it to the `applyPluginDevKitHierarchyTemplate` block in `build.gradle.kts`, nested at the right point in the existing chain.
+1. Add the `pre`/`post` boundary for it to the `versionHierarchy` block in `build.gradle.kts`, nested at the right point in the existing chain.
 2. Add the `expect` declaration to `commonMain` with a `@CompatApi` annotation, and an `actual` in each new source set.
 3. Run the compiler tests against that version, e.g. `./metrow test --version 2.4.20-Beta1`.
 
