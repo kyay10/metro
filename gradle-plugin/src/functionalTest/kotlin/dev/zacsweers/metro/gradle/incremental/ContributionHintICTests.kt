@@ -18,8 +18,8 @@ class ContributionHintICTests :
 
   @Test
   fun contributionScopeArgumentChangeRemovesOldIrHint() {
-    val selectedTarget = System.getProperty("metro.functionalTestKmpTarget")
-    assumeTrue(selectedTarget == null || selectedTarget == "jvm")
+    val selectedTarget = KmpTarget.selectedTargets().singleOrNull()
+    assumeTrue(selectedTarget == KmpTarget.JVM)
 
     val fixture =
       object : MetroProject(multiplatform = false) {

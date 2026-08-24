@@ -184,7 +184,7 @@ jobs:
             $DEVKIT_NARROW \
             '-Pkotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
-            -Pmetro.functionalTestKmpTarget=jvm \
+            -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=jvm \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: (Fail-only) Upload reports
@@ -302,7 +302,7 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: |
           ./gradlew :gradle-plugin:defaultFunctionalTest --quiet \
-            -Pmetro.functionalTestKmpTarget=wasmJs \
+            -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=wasmJs \
             $DEVKIT_NARROW \
             --tests 'dev.zacsweers.metro.gradle.incremental.ICTests.icWorksWhenAddingAParamToExistingInjectedTypeWithScopeWithZeroToOneParams*' \
             -Dorg.gradle.configuration-cache.read-only=true
@@ -368,7 +368,7 @@ jobs:
         run: |
           ./gradlew :gradle-plugin:defaultFunctionalTest --continue --quiet \
             $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
-            -Pmetro.functionalTestKmpTarget=${{ matrix.target }}
+            -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=${{ matrix.target }}
 
       - name: (Fail-only) Upload reports
         if: failure() && github.ref == 'refs/heads/main'
@@ -503,7 +503,7 @@ jobs:
         run: |
           ./gradlew :runtime:allTests :runtime-coroutines:allTests :gradle-plugin:defaultFunctionalTest --continue --quiet \
             $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
-            -Pmetro.functionalTestKmpTarget=all
+            -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=all
 
       - name: Check samples
         if: github.ref == 'refs/heads/main'

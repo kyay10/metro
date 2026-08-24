@@ -22,8 +22,8 @@ import org.junit.Test
 class CircuitMirrorRemovalIcTests : BaseIncrementalCompilationTest(KmpTarget.JVM) {
   @Test
   fun classAndFunctionScreenArgumentChangesAreDetected() {
-    val selectedTarget = System.getProperty("metro.functionalTestKmpTarget")
-    assumeTrue(selectedTarget == null || selectedTarget == "jvm")
+    val selectedTarget = KmpTarget.selectedTargets().singleOrNull()
+    assumeTrue(selectedTarget == KmpTarget.JVM)
     assumeTrue(getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.0"))
 
     val circuitVersion = getTestCircuitVersion()
