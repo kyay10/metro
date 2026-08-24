@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":gradle-plugin:functionalTest" />
+          <option value=":gradle-plugin:k240FunctionalTest" />
         </list>
       </option>
       <option name="vmOptions" />

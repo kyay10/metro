@@ -49,11 +49,11 @@ run_samples_tests() {
 }
 
 # Function to run tests with optional compiler version
-# `defaultTest`/`functionalTest` delegate to whichever version `defaultTestVersion` selects.
+# `defaultTest`/`defaultFunctionalTest` delegate to whichever version `defaultTestVersion` selects.
 run_tests() {
     local compiler_version="$1"
     local args=(
-        :compiler:defaultTest :compiler-tests:defaultTest :gradle-plugin:functionalTest
+        :compiler:defaultTest :compiler-tests:defaultTest :gradle-plugin:defaultFunctionalTest
         :runtime:allTests :runtime-coroutines:allTests
         --quiet -x logLinkDokkaGeneratePublicationHtml -x dokkaGeneratePublicationHtml
     )

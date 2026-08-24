@@ -8,7 +8,7 @@ See @README.md, @docs, and @.github/CONTRIBUTING.md for project overview.
 
 - `./gradlew :compiler:k240Test` - Run legacy compiler tests
 - `./gradlew :compiler-tests:k240Test` - Run new compiler tests
-- `./gradlew :gradle-plugin:functionalTest` - Run Gradle integration tests
+- `./gradlew :gradle-plugin:defaultFunctionalTest` - Run Gradle integration tests
 - `./gradlew -p samples check` - Run sample project tests
 - `./metrow check` - Runs _all_ validation and tests in the project (tests, linting, API validation). This is expensive.
 
