@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
-import dev.zacsweers.metro.compiler.test.BUILD_COMPILER_VERSION
 import dev.zacsweers.metro.compiler.test.COMPILER_VERSION
-import dev.zacsweers.metro.compiler.test.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.services.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.builders.RegisteredDirectivesBuilder
 import org.jetbrains.kotlin.test.directives.DiagnosticsDirectives
@@ -30,13 +29,6 @@ class MetroTestConfigurator(testServices: TestServices) : MetaTestConfigurator(t
       testClassName == "OmitRedundantMirrorsIrOnlyClassesBoxTestGenerated" &&
         System.getProperty("metro.testOmitRedundantMirrors")?.toBooleanStrictOrNull() != true
     ) {
-      return true
-    }
-
-    if (testServices.isJsBackend() && TEST_COMPILER_VERSION < BUILD_COMPILER_VERSION) {
-      // JS box tests compile against Metro's runtime KLIB. KLIB compatibility depends on the
-      // producing compiler, so only run these tests against the compiler version that built it or
-      // higher
       return true
     }
 

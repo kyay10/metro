@@ -28,13 +28,13 @@ import dev.zacsweers.metro.compiler.hilt.HiltContributionExtension
 import dev.zacsweers.metro.compiler.hilt.HiltFirDeclarationExtension
 import dev.zacsweers.metro.compiler.interop.Ksp2AdditionalSourceProvider
 import dev.zacsweers.metro.compiler.ir.MetroIrGenerationExtension
-import dev.zacsweers.metro.compiler.test.TEST_COMPILER_VERSION
 import dev.zacsweers.metro.compiler.tracing.TraceContext
 import kotlin.io.path.Path
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.services.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.compiler.plugin.devkit.services.configureDefaultTestDataLibraries
 import org.jetbrains.kotlin.compiler.plugin.devkit.services.configureTestDataLibrary
 import org.jetbrains.kotlin.config.CompilerConfiguration

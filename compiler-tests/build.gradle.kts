@@ -15,9 +15,7 @@ plugins {
 // global value.
 pluginDevKit.testAgainst.configureEach {
   testTask {
-    systemProperty("metro.test.compilerVersion", version.toString())
     systemProperty("metro.test.jvmTarget", libs.versions.jvmTarget.get())
-    systemProperty("metro.test.buildCompilerVersion", libs.versions.kotlin.get())
   }
 }
 

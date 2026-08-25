@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
-import org.jetbrains.kotlin.compiler.plugin.devkit.firIdenticalCompat
 import org.jetbrains.kotlin.compiler.plugin.devkit.runners.DevKitTest
+import org.jetbrains.kotlin.compiler.plugin.devkit.runners.devKitDefaults
 import org.jetbrains.kotlin.compiler.plugin.devkit.useFailureSuppressorsCompat
 import org.jetbrains.kotlin.js.test.runners.commonConfigurationForJsTest
 import org.jetbrains.kotlin.test.FirParser
@@ -31,6 +31,7 @@ open class AbstractJsDiagnosticTest :
   DevKitTest(
     TargetBackend.JS_IR,
     {
+      devKitDefaults()
       commonConfigurationForJsTest()
       configureFirParser(FirParser.LightTree)
       configurePlugin()
@@ -39,7 +40,6 @@ open class AbstractJsDiagnosticTest :
 
       defaultDirectives {
         +WITH_STDLIB
-        firIdenticalCompat()
         +DISABLE_GENERATED_FIR_TAGS
         commonMetroTestDirectives()
 

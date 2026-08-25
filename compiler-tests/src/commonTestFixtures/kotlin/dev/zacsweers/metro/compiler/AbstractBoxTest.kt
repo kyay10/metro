@@ -5,8 +5,10 @@ package dev.zacsweers.metro.compiler
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaConstructor
-import org.jetbrains.kotlin.compiler.plugin.devkit.runners.DevKitTest
+import org.jetbrains.kotlin.compiler.plugin.devkit.runners.BackportedJvmBlackBoxCodegenTestBase
+import org.jetbrains.kotlin.compiler.plugin.devkit.runners.devKitDefaults
 import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.test.FirParser
 import org.jetbrains.kotlin.test.backend.ir.IrBackendInput
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.configureIrHandlersStep
@@ -16,7 +18,6 @@ import org.jetbrains.kotlin.test.directives.ConfigurationDirectives.WITH_STDLIB
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.FULL_JDK
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.JVM_TARGET
 import org.jetbrains.kotlin.test.model.BackendInputHandler
-import org.jetbrains.kotlin.test.runners.codegen.AbstractFirLightTreeBlackBoxCodegenTest
 
 @Suppress("UNCHECKED_CAST")
 private val NoIrCompilationErrorsHandler =
@@ -32,9 +33,10 @@ private val NoIrCompilationErrorsHandler =
     ?: error("Could not find NoIrCompilationErrorsHandler for the current kotlin version")
 
 open class AbstractBoxTest(vararg config: TestConfigurationBuilder.() -> Unit) :
-  DevKitTest(
-    AbstractFirLightTreeBlackBoxCodegenTest(),
+  BackportedJvmBlackBoxCodegenTestBase(
+    parser = FirParser.LightTree,
     {
+      devKitDefaults()
       configurePlugin()
 
       useSourcePreprocessor(::KotlinTestImportPreprocessor)
