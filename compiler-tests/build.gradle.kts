@@ -88,63 +88,70 @@ val largeTestMode = providers.gradleProperty("metro.enableLargeTests").isPresent
 val excludeJsBoxTests = providers.gradleProperty("metro.excludeJsBoxTests").isPresent
 val testOmitRedundantMirrors = providers.gradleProperty("metro.testOmitRedundantMirrors").orNull
 
-tasks.withType<Test> {
-  outputs.upToDateWhen { false }
+pluginDevKit.testAgainst.configureEach {
+  testTask {
+    outputs.upToDateWhen { false }
 
-  // Inspo from https://youtrack.jetbrains.com/issue/KT-83440
-  minHeapSize = "512m"
-  maxHeapSize = if (largeTestMode) "5g" else "2g"
-  jvmArgs(
-    "-ea",
-    "-XX:+UseCodeCacheFlushing",
-    "-XX:ReservedCodeCacheSize=256m",
-    "-XX:MaxMetaspaceSize=${if (largeTestMode) "512m" else "1g"}",
-    "-XX:CICompilerCount=2",
-    "-Djna.nosys=true",
-  )
+    // Inspo from https://youtrack.jetbrains.com/issue/KT-83440
+    minHeapSize = "512m"
+    maxHeapSize = if (largeTestMode) "5g" else "2g"
+    jvmArgs(
+      "-ea",
+      "-XX:+UseCodeCacheFlushing",
+      "-XX:ReservedCodeCacheSize=256m",
+      "-XX:MaxMetaspaceSize=${if (largeTestMode) "512m" else "1g"}",
+      "-XX:CICompilerCount=2",
+      "-Djna.nosys=true",
+    )
 
-  if (providers.gradleProperty("metro.debugCompilerTests").isPresent) {
-    testLogging {
-      showStandardStreams = true
-      showStackTraces = true
+    if (providers.gradleProperty("metro.debugCompilerTests").isPresent) {
+      testLogging {
+        showStandardStreams = true
+        showStackTraces = true
 
-      // Set options for log level LIFECYCLE
-      events("started", "passed", "failed", "skipped")
-      setExceptionFormat("short")
+        // Set options for log level LIFECYCLE
+        events("started", "passed", "failed", "skipped")
+        setExceptionFormat("short")
 
-      // Setting this to 0 (the default is 2) will display the test executor that each test is
-      // running on.
-      displayGranularity = 0
+        // Setting this to 0 (the default is 2) will display the test executor that each test is
+        // running on.
+        displayGranularity = 0
+      }
+
+      val outputDir = isolated.rootProject.projectDirectory.dir("tmp").asFile.apply { mkdirs() }
+
+      jvmArgs(
+        "-XX:+HeapDumpOnOutOfMemoryError", // Produce a heap dump when an OOM occurs
+        "-XX:+CrashOnOutOfMemoryError", // Produce a crash report when an OOM occurs
+        "-XX:+UseGCOverheadLimit",
+        "-XX:GCHeapFreeLimit=10",
+        "-XX:GCTimeLimit=20",
+        "-XX:HeapDumpPath=$outputDir",
+        "-XX:ErrorFile=$outputDir",
+      )
     }
 
-    val outputDir = isolated.rootProject.projectDirectory.dir("tmp").asFile.apply { mkdirs() }
+    if (largeTestMode) {
+      filter { includeTestsMatching("*StressTest*") }
+    } else {
+      filter { excludeTestsMatching("*StressTest*") }
+    }
+    if (excludeJsBoxTests) {
+      filter {
+        excludeTestsMatching("dev.zacsweers.metro.compiler.*JsBoxTestGenerated*")
+        excludeTestsMatching("dev.zacsweers.metro.compiler.*JsFastInitBoxTestGenerated*")
+        excludeTestsMatching(
+          "dev.zacsweers.metro.compiler.*JsContributionProvidersBoxTestGenerated*"
+        )
+      }
+    }
 
-    jvmArgs(
-      "-XX:+HeapDumpOnOutOfMemoryError", // Produce a heap dump when an OOM occurs
-      "-XX:+CrashOnOutOfMemoryError", // Produce a crash report when an OOM occurs
-      "-XX:+UseGCOverheadLimit",
-      "-XX:GCHeapFreeLimit=10",
-      "-XX:GCTimeLimit=20",
-      "-XX:HeapDumpPath=$outputDir",
-      "-XX:ErrorFile=$outputDir",
+    systemProperty("metro.shortLocations", "true")
+    testOmitRedundantMirrors?.let { systemProperty("metro.testOmitRedundantMirrors", it) }
+
+    setClasspathProperty(
+      "ksp.testRuntimeClasspath",
+      configurations.named(testFixturesCompilation.runtimeDependencyConfigurationName),
     )
   }
-
-  if (largeTestMode) {
-    filter { includeTestsMatching("*StressTest*") }
-  } else {
-    filter { excludeTestsMatching("*StressTest*") }
-  }
-  if (excludeJsBoxTests) {
-    filter {
-      excludeTestsMatching("dev.zacsweers.metro.compiler.*JsBoxTestGenerated*")
-      excludeTestsMatching("dev.zacsweers.metro.compiler.*JsFastInitBoxTestGenerated*")
-      excludeTestsMatching("dev.zacsweers.metro.compiler.*JsContributionProvidersBoxTestGenerated*")
-    }
-  }
-
-  systemProperty("metro.shortLocations", "true")
-  testOmitRedundantMirrors?.let { systemProperty("metro.testOmitRedundantMirrors", it) }
-
-  setClasspathProperty("ksp.testRuntimeClasspath", configurations.k240TestFixturesRuntimeClasspath)
 }

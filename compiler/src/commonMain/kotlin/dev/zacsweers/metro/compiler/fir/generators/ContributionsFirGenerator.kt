@@ -49,9 +49,9 @@ import dev.zacsweers.metro.compiler.mapToSet
 import dev.zacsweers.metro.compiler.reportCompilerBug
 import dev.zacsweers.metro.compiler.symbols.Symbols
 import org.jetbrains.kotlin.builtins.StandardNames
+import org.jetbrains.kotlin.compiler.plugin.devkit.fakeElementCompat
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.fakeElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.backend.native.interop.parentsWithSelf
 import org.jetbrains.kotlin.fir.caches.FirCache
@@ -539,7 +539,8 @@ internal class ContributionsFirGenerator(
             if (!added) {
               add(
                 buildAnnotationCallCopy(mapKeyFirAnnotation) {
-                  source = mapKeyFirAnnotation.source?.fakeElement(pluginGeneratedSourceElementKind)
+                  source =
+                    mapKeyFirAnnotation.source?.fakeElementCompat(pluginGeneratedSourceElementKind)
                   containingDeclarationSymbol = function.symbol
                 }
               )
@@ -559,7 +560,7 @@ internal class ContributionsFirGenerator(
           ?.let {
             add(
               buildAnnotationCallCopy(it) {
-                source = it.source?.fakeElement(pluginGeneratedSourceElementKind)
+                source = it.source?.fakeElementCompat(pluginGeneratedSourceElementKind)
                 containingDeclarationSymbol = function.symbol
               }
             )
@@ -577,13 +578,13 @@ internal class ContributionsFirGenerator(
           val anno =
             if (it is FirAnnotationCall) {
               buildAnnotationCallCopy(it) {
-                source = it.source?.fakeElement(pluginGeneratedSourceElementKind)
+                source = it.source?.fakeElementCompat(pluginGeneratedSourceElementKind)
                 containingDeclarationSymbol = function.symbol
               }
             } else {
               // External decl we're copying from
               buildAnnotationCopy(it) {
-                source = it.source?.fakeElement(pluginGeneratedSourceElementKind)
+                source = it.source?.fakeElementCompat(pluginGeneratedSourceElementKind)
               }
             }
           add(anno)
@@ -639,7 +640,7 @@ internal class ContributionsFirGenerator(
         ?.let {
           add(
             buildAnnotationCallCopy(it) {
-              source = it.source?.fakeElement(pluginGeneratedSourceElementKind)
+              source = it.source?.fakeElementCompat(pluginGeneratedSourceElementKind)
               containingDeclarationSymbol = function.symbol
             }
           )

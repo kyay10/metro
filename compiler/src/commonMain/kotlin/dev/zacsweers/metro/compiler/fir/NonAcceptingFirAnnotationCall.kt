@@ -4,8 +4,8 @@ package dev.zacsweers.metro.compiler.fir
 
 import dev.zacsweers.metro.compiler.compat.pluginGeneratedSourceElementKind
 import org.jetbrains.kotlin.KtSourceElement
+import org.jetbrains.kotlin.compiler.plugin.devkit.fakeElementCompat
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
-import org.jetbrains.kotlin.fakeElement
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationArgumentMapping
@@ -45,7 +45,7 @@ private class NonAcceptingFirAnnotationCall(
   override val containingDeclarationSymbol: FirBasedSymbol<*>,
 ) : FirAnnotationCall() {
   override val source: KtSourceElement?
-    get() = delegate.source?.fakeElement(pluginGeneratedSourceElementKind)
+    get() = delegate.source?.fakeElementCompat(pluginGeneratedSourceElementKind)
 
   @UnresolvedExpressionTypeAccess
   override val coneTypeOrNull: ConeKotlinType?
