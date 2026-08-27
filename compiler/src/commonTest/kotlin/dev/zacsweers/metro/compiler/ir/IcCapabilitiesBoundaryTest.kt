@@ -17,6 +17,6 @@ class IcCapabilitiesBoundaryTest {
     assertThat(supportsAnnotationArgumentInvalidation)
       .isEqualTo(compilerVersion >= KotlinToolingVersion("2.4.0"))
     assertThat(supportsIrGeneratedClasses)
-      .isEqualTo(compilerVersion >= KotlinToolingVersion("2.4.20-dev-6138"))
+      .isEqualTo(compilerVersion > KotlinToolingVersion("2.4.19"))
   }
 }

@@ -22,7 +22,7 @@ dependencyResolutionManagement {
 }
 
 plugins {
-  kotlin("compiler.plugin.devkit") version "0.0.3-dev-82c85b5"
+  kotlin("compiler.plugin.devkit") version "0.0.3-dev-281e88f"
   id("com.gradle.develocity")
 }
 
