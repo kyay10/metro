@@ -6,9 +6,9 @@ import com.autonomousapps.kit.gradle.Dependency.Companion.implementation
 import com.google.common.truth.Truth.assertThat
 import dev.zacsweers.metro.gradle.MetroProject
 import org.gradle.testkit.runner.TaskOutcome
-import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.KmpTarget
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.TEST_COMPILER_VERSION
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
@@ -20,7 +20,7 @@ class NativeICTests : BaseIncrementalCompilationTest(KmpTarget.NATIVE_HOST) {
   fun nativeKlibChangeRelinksIncrementally() {
     assumeTrue(
       "Kotlin/Native incremental klib compilation is enabled by default in Kotlin 2.4.20-Beta1+",
-      getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.20-Beta1"),
+      TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.20-Beta1"),
     )
 
     val fixture =

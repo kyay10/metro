@@ -14,10 +14,10 @@ import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
-import org.jetbrains.kotlin.compiler.plugin.devkit.isDev
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.KotlinPlugins
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerToolingVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.TEST_COMPILER_VERSION
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
+import org.jetbrains.kotlin.tooling.core.isDev
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
@@ -65,8 +65,7 @@ class MetroArtifactsTest {
 
   @Test
   fun `generateClassesInIr Gradle property overrides compiler version default`() {
-    val compilerVersionDefault =
-      getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.20-dev-6138")
+    val compilerVersionDefault = TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.20-dev-6138")
     val propertyOverride = !compilerVersionDefault
     val fixture =
       object : MetroProject(multiplatform = false) {
@@ -216,20 +215,20 @@ class MetroArtifactsTest {
 
   @Test
   fun `generateMetroGraphMetadata task creates aggregated JSON output`() {
-    val testCompilerVersion = getTestCompilerToolingVersion()
     val topLevelFirGenEnabled =
-      if (testCompilerVersion.isDev) {
-        testCompilerVersion >= KotlinToolingVersion("2.3.20-dev-6204")
+      if (TEST_COMPILER_VERSION.isDev) {
+        TEST_COMPILER_VERSION >= KotlinToolingVersion("2.3.20-dev-6204")
       } else {
-        testCompilerVersion >= KotlinToolingVersion("2.3.20-Beta1")
+        TEST_COMPILER_VERSION >= KotlinToolingVersion("2.3.20-Beta1")
       }
     val enableKlibParamsCheck =
-      testCompilerVersion >= KotlinToolingVersion("2.3.0") &&
-        testCompilerVersion < KotlinToolingVersion("2.3.20-Beta2")
-    val generateClassesInIrEnabled = testCompilerVersion >= KotlinToolingVersion("2.4.20-dev-6138")
+      TEST_COMPILER_VERSION >= KotlinToolingVersion("2.3.0") &&
+        TEST_COMPILER_VERSION < KotlinToolingVersion("2.3.20-Beta2")
+    val generateClassesInIrEnabled =
+      TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.20-dev-6138")
     val omitRedundantMirrors = getTestOmitRedundantMirrorsOverride() == true
     val privateProviderPropertiesEnabled =
-      testCompilerVersion >= KotlinToolingVersion("2.4.20-Beta1")
+      TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.20-Beta1")
 
     val fixture =
       object : MetroProject(multiplatform = false) {

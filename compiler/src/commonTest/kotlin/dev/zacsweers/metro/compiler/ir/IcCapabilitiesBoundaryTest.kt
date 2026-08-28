@@ -6,7 +6,7 @@ import com.google.common.truth.Truth.assertThat
 import dev.zacsweers.metro.compiler.compat.loadCompilerVersionOrNull
 import dev.zacsweers.metro.compiler.compat.supportsAnnotationArgumentInvalidation
 import dev.zacsweers.metro.compiler.compat.supportsIrGeneratedClasses
-import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 import org.junit.Test
 
 class IcCapabilitiesBoundaryTest {

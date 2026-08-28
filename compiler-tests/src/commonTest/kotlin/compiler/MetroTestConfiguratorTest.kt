@@ -5,7 +5,7 @@ package dev.zacsweers.metro.compiler
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 class MetroTestConfiguratorTest {
 

@@ -18,15 +18,14 @@ import dev.zacsweers.metro.gradle.getTestOmitRedundantMirrorsOverride
 import java.io.File
 import java.net.URLClassLoader
 import org.gradle.testkit.runner.TaskOutcome
-import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.KmpTarget
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.KotlinPlugins
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.buildAndAssertThat
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.classLoader
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.cleanOutputLine
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerToolingVersion
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerVersion
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.invokeMain
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
@@ -43,8 +42,7 @@ class ICTests(target: KmpTarget) : BaseIncrementalCompilationTest(target) {
   }
 
   private val generateClassesInIrEnabled =
-    target == KmpTarget.JVM &&
-      getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.20-dev-6138")
+    target == KmpTarget.JVM && TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.20-dev-6138")
 
   private fun someRepositoryProviderRequestPath(): String {
     return if (generateClassesInIrEnabled) {
@@ -646,7 +644,7 @@ class ICTests(target: KmpTarget) : BaseIncrementalCompilationTest(target) {
 
   @Test
   fun internalBindingsWithoutRedundantMirrors() {
-    assumeTrue(getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.0"))
+    assumeTrue(TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.0"))
     internalBindings(omitRedundantMirrors = true)
   }
 
@@ -1164,8 +1162,7 @@ class ICTests(target: KmpTarget) : BaseIncrementalCompilationTest(target) {
     }
 
     val omitRedundantMirrorsEnabled = getTestOmitRedundantMirrorsOverride() == true
-    val annotationArgumentChangesSupported =
-      getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.0")
+    val annotationArgumentChangesSupported = TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.0")
     val requiresAnnotationRemovalWorkaround =
       !omitRedundantMirrorsEnabled || !annotationArgumentChangesSupported
     if (requiresAnnotationRemovalWorkaround) {
@@ -2954,7 +2951,7 @@ class ICTests(target: KmpTarget) : BaseIncrementalCompilationTest(target) {
     val fixture =
       object : MetroProject(multiplatform = false) {
         private val composePlugin =
-          Plugin("org.jetbrains.kotlin.plugin.compose", getTestCompilerVersion())
+          Plugin("org.jetbrains.kotlin.plugin.compose", "$TEST_COMPILER_VERSION")
         private val composeRuntimeDependency =
           """
           dependencies {
@@ -3214,7 +3211,7 @@ class ICTests(target: KmpTarget) : BaseIncrementalCompilationTest(target) {
 
   @Test
   fun mapKeyArgumentChangeDetectedWhenOmittingRedundantMirrors() {
-    assumeTrue(getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.0"))
+    assumeTrue(TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.0"))
 
     val fixture =
       object : MetroProject(metroOptions = MetroOptionOverrides(omitRedundantMirrors = true)) {
@@ -3304,7 +3301,7 @@ class ICTests(target: KmpTarget) : BaseIncrementalCompilationTest(target) {
 
   @Test
   fun defaultBindingTypeArgumentChangeDetectedWhenOmittingRedundantMirrors() {
-    assumeTrue(getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.0"))
+    assumeTrue(TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.0"))
 
     val fixture =
       object : MetroProject(metroOptions = MetroOptionOverrides(omitRedundantMirrors = true)) {

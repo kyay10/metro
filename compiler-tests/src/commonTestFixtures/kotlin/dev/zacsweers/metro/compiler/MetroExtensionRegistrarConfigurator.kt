@@ -33,7 +33,6 @@ import kotlin.io.path.Path
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
 import org.jetbrains.kotlin.compiler.plugin.devkit.services.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.compiler.plugin.devkit.services.configureDefaultTestDataLibraries
 import org.jetbrains.kotlin.compiler.plugin.devkit.services.configureTestDataLibrary
@@ -48,6 +47,7 @@ import org.jetbrains.kotlin.test.services.EnvironmentConfigurator
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.defaultsProvider
 import org.jetbrains.kotlin.test.services.temporaryDirectoryManager
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 fun TestConfigurationBuilder.configurePlugin() {
   useConfigurators({ MetroExtensionRegistrarConfigurator(it) })

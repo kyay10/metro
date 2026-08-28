@@ -3,7 +3,6 @@
 package dev.zacsweers.metro.compiler
 
 import dev.zacsweers.metro.compiler.test.COMPILER_VERSION
-import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
 import org.jetbrains.kotlin.compiler.plugin.devkit.services.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.builders.RegisteredDirectivesBuilder
@@ -15,6 +14,7 @@ import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.defaultsProvider
 import org.jetbrains.kotlin.test.services.moduleStructure
 import org.jetbrains.kotlin.test.services.testInfo
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 class MetroTestConfigurator(testServices: TestServices) : MetaTestConfigurator(testServices) {
   override val directiveContainers: List<DirectivesContainer>

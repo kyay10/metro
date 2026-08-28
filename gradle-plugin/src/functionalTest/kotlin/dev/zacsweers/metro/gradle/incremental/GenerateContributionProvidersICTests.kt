@@ -10,10 +10,10 @@ import java.io.File
 import org.gradle.testkit.runner.TaskOutcome
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.FileSnapshot
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.KmpTarget
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.invokeMain
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.snapshot
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.toKotlinVersion
+import org.jetbrains.kotlin.tooling.core.toKotlinVersion
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -33,7 +33,7 @@ class GenerateContributionProvidersICTests(target: KmpTarget) :
   @Before
   fun setup() {
     // Requires FIR hint generation which is available in Kotlin 2.3.20+
-    assumeTrue(getTestCompilerVersion().toKotlinVersion() >= KotlinVersion(2, 3, 20))
+    assumeTrue(TEST_COMPILER_VERSION.toKotlinVersion() >= KotlinVersion(2, 3, 20))
   }
 
   /**

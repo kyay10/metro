@@ -6,7 +6,7 @@ import com.autonomousapps.kit.GradleProject
 import java.io.File
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.AbstractIncrementalCompilationTest
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.KmpTarget
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.resolveSafe
 import org.junit.Assume.assumeFalse
 import org.junit.Before
@@ -33,8 +33,8 @@ abstract class BaseIncrementalCompilationTest(
     if (target != KmpTarget.JS && target != KmpTarget.WASM_JS) return
     assumeFalse(
       "Kotlin/$target IC cannot generate top-level declarations on " +
-        "${getTestCompilerVersion()} (KT-82395, KT-82989)",
-      getTestCompilerVersion() in JS_WASM_IC_TOP_LEVEL_BROKEN_VERSIONS,
+        "$TEST_COMPILER_VERSION (KT-82395, KT-82989)",
+      "$TEST_COMPILER_VERSION" in JS_WASM_IC_TOP_LEVEL_BROKEN_VERSIONS,
     )
   }
 

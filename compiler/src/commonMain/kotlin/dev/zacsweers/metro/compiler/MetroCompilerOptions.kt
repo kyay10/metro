@@ -4,11 +4,11 @@ package dev.zacsweers.metro.compiler
 
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
-import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 import org.jetbrains.kotlin.js.config.jsIncrementalCompilationEnabled
 import org.jetbrains.kotlin.js.config.wasmCompilation
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 internal val RawMetroOption<*>.cliOption: AbstractCliOption
   get() =

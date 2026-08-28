@@ -10,12 +10,11 @@ import dev.zacsweers.metro.gradle.GradlePlugins
 import dev.zacsweers.metro.gradle.MetroProject
 import dev.zacsweers.metro.gradle.getTestCircuitVersion
 import org.gradle.testkit.runner.TaskOutcome
-import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.KmpTarget
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.KotlinPlugins
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerToolingVersion
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerVersion
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.invokeMain
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 
@@ -24,14 +23,14 @@ class CircuitMirrorRemovalIcTests : BaseIncrementalCompilationTest(KmpTarget.JVM
   fun classAndFunctionScreenArgumentChangesAreDetected() {
     val selectedTarget = KmpTarget.selectedTargets().singleOrNull()
     assumeTrue(selectedTarget == KmpTarget.JVM)
-    assumeTrue(getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.0"))
+    assumeTrue(TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.0"))
 
     val circuitVersion = getTestCircuitVersion()
     val circuitRuntime =
       implementation("com.slack.circuit:circuit-runtime-presenter:$circuitVersion")
     val circuitAnnotations =
       implementation("com.slack.circuit:circuit-codegen-annotations:$circuitVersion")
-    val composePlugin = Plugin("org.jetbrains.kotlin.plugin.compose", getTestCompilerVersion())
+    val composePlugin = Plugin("org.jetbrains.kotlin.plugin.compose", "$TEST_COMPILER_VERSION")
     val metroConfig =
       """
       @OptIn(

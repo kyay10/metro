@@ -10,14 +10,13 @@ import dev.zacsweers.metro.gradle.MetroOptionOverrides
 import dev.zacsweers.metro.gradle.MetroProject
 import dev.zacsweers.metro.gradle.getTestOmitRedundantMirrorsOverride
 import org.gradle.testkit.runner.TaskOutcome
-import org.jetbrains.kotlin.compiler.plugin.devkit.KotlinToolingVersion
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.KmpTarget
+import org.jetbrains.kotlin.compiler.plugin.devkit.test.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.assertOutputContains
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.cleanOutputLine
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerToolingVersion
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.getTestCompilerVersion
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.invokeMain
-import org.jetbrains.kotlin.compiler.plugin.devkit.test.toKotlinVersion
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
+import org.jetbrains.kotlin.tooling.core.toKotlinVersion
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -1687,7 +1686,7 @@ class BindingContainerICTests(target: KmpTarget) : BaseIncrementalCompilationTes
 
   @Test
   fun multibindsQualifierArgumentChangeDetectedWhenOmittingRedundantMirrors() {
-    assumeTrue(getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.0"))
+    assumeTrue(TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.0"))
 
     val fixture =
       object : MetroProject(metroOptions = MetroOptionOverrides(omitRedundantMirrors = true)) {
@@ -1830,7 +1829,7 @@ class BindingContainerICTests(target: KmpTarget) : BaseIncrementalCompilationTes
     val expectedColumn =
       if (
         getTestOmitRedundantMirrorsOverride() == true &&
-          getTestCompilerToolingVersion() >= KotlinToolingVersion("2.4.0")
+          TEST_COMPILER_VERSION >= KotlinToolingVersion("2.4.0")
       ) {
         7
       } else {
@@ -2288,7 +2287,7 @@ class BindingContainerICTests(target: KmpTarget) : BaseIncrementalCompilationTes
   @Test
   fun contributesToScopeChangeWithInterfaceBindingMultimodule() {
     // Requires FIR hint generation which is available in Kotlin 2.3.20+
-    assumeTrue(getTestCompilerVersion().toKotlinVersion() >= KotlinVersion(2, 3, 20))
+    assumeTrue(TEST_COMPILER_VERSION.toKotlinVersion() >= KotlinVersion(2, 3, 20))
 
     val fixture =
       object : MetroProject() {
