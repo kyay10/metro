@@ -30,6 +30,10 @@ pluginDevKit {
 // ignore tests provided by devkit
 tasks.generateTests { enabled = false }
 
+tasks.generateTestsCli { enabled = false }
+
+tasks.generateTestsIde { enabled = false }
+
 tasks.withType<Test> { failOnNoDiscoveredTests = false }
 
 // Reports the Kotlin compiler versions this build tests against and which of them the plain

@@ -31,6 +31,10 @@ plugins {
 
 tasks.generateTests { enabled = false }
 
+tasks.generateTestsCli { enabled = false }
+
+tasks.generateTestsIde { enabled = false }
+
 metroArtifact {
   artifactId.set("compiler")
   name.set("Metro Compiler")
