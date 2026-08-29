@@ -21,6 +21,7 @@ fun main(args: Array<String>) =
     sourceSetTestClass<AbstractFirDumpTest> { commonModel("dump/fir") }
     sourceSetTestClass<AbstractIrDumpTest> { commonModel("dump/ir") }
     sourceSetTestClass<AbstractReportsTest> { commonModel("dump/reports") }
+    extraClasses()
   }
 
 context(_: SourceSetName)
