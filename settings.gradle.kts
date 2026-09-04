@@ -33,6 +33,7 @@ include(
   ":compiler-compat",
   ":compiler-tests",
   ":gradle-plugin",
+  ":ide-integration-tests",
   ":interop-dagger",
   ":interop-javax",
   ":interop-jakarta",

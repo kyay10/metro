@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       ide:
-        description: 'IDE to test (e.g., "IU:2025.3.2") or "all"'
+        description: 'IDE test task to run (e.g., "ideaUltimate2026_1_1IdeTest") or "all"'
         type: string
         default: 'all'
 
@@ -21,11 +21,17 @@ concurrency:
 jobs:
   generate-matrix:
     name: Generate IDE matrix
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     outputs:
       ide-matrix: ${{ steps.matrix.outputs.ide-matrix }}
     steps:
       - uses: actions/checkout@v7
+
+      - name: Setup Gradle
+        uses: ./.github/actions/setup-gradle
+        with:
+          encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          cache-read-only: true
 
       - name: Generate IDE matrix
         id: matrix
@@ -35,10 +41,10 @@ jobs:
           if [[ -n "$input_ide" ]] && [[ "$input_ide" != "all" ]]; then
             json=$(echo "[\"$input_ide\"]" | jq -c .)
           else
-            # Read non-comment, non-empty lines; strip trailing comments
-            json=$(grep -v '^#' ide-integration-tests/ide-versions.txt \
-              | grep -v '^[[:space:]]*$' \
-              | sed 's/ #.*//' \
+            # One task per IDE registered in ide-integration-tests/build.gradle.kts. The grep drops
+            # the build scan line Develocity prints on the same stream.
+            json=$(./gradlew -q :ide-integration-tests:listIdeTests \
+              | grep -E 'IdeTest$' \
               | jq -R -s -c 'split("\n") | map(select(length > 0))')
           fi
           echo "ide-matrix=$json" >> "$GITHUB_OUTPUT"
@@ -78,8 +84,6 @@ jobs:
       fail-fast: false
       matrix:
         ide: ${{ fromJson(needs.generate-matrix.outputs.ide-matrix) }}
-    env:
-      METRO_PREBUILT: true
 
     steps:
       - name: Free disk space
@@ -87,7 +91,7 @@ jobs:
         with:
           tool-cache: false
           # Keep the Android SDK for AS matrix entries — AS's Gradle processor blocks on SdkSync if missing
-          android: ${{ !startsWith(matrix.ide, 'AS:') }}
+          android: ${{ !startsWith(matrix.ide, 'androidStudio') }}
           dotnet: true
           haskell: true
           large-packages: true
@@ -110,38 +114,26 @@ jobs:
               encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
               cache-read-only: true
 
-          - name: Install aria2 and xvfb
+          - name: Install xvfb
             run: |
               sudo apt-get update
-              sudo apt-get install -y aria2 xvfb
+              sudo apt-get install -y xvfb
 
-          - name: Filter IDE version for this matrix entry
-            run: |
-              echo "${{ matrix.ide }}" > ide-integration-tests/ide-versions.txt
-              echo "IDE_SLUG=${IDE//:/-}" >> "$GITHUB_ENV"
-            env:
-              IDE: ${{ matrix.ide }}
-
-          - name: Write local.properties for Android Studio
-            if: startsWith(matrix.ide, 'AS:')
-            run: echo "sdk.dir=$ANDROID_HOME" > ide-integration-tests/test-project/local.properties
-
-      # We don't cache IDE downloads with a separate cache step because they download in a few seconds
-      - name: Download IDE
-        run: ide-integration-tests/download-ides.sh
-
-      - name: Run IDE tests
-        # The :intellijPlatformTestRuntimeClasspath resolution flakes with a
-        # ClosedFileSystemException (IO/download issue), so retry once. The retry adds --stacktrace to
-        # pin down where the failure originates if it recurs.
+      - name: Run IDE test
+        # Resolving the IDE Starter classpath flakes with a ClosedFileSystemException (IO/download
+        # issue), so retry once. The retry adds --stacktrace to pin down where the failure
+        # originates if it recurs.
         run: |
           set +e
-          ./gradlew -p ide-integration-tests test --quiet
+          run() {
+            ./gradlew ":ide-integration-tests:${{ matrix.ide }}" --quiet "$@"
+          }
+          run
           status=$?
           if [ $status -ne 0 ]; then
             echo "::warning::IDE tests failed (exit $status); retrying once"
             sleep 15
-            ./gradlew -p ide-integration-tests test --quiet --stacktrace
+            run --stacktrace
             status=$?
           fi
           exit $status
@@ -150,7 +142,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: ide-logs-${{ env.IDE_SLUG }}
+          name: ide-logs-${{ matrix.ide }}
           path: |
             ide-integration-tests/**/build/reports/**
             out/ide-tests/tests/**/log/**

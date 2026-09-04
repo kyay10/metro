@@ -1,12 +1,3 @@
-# IDE Starter test output
-out/
-.intellijPlatform/
+# IDE Starter test output. The rest of what it writes goes to `out/` at the repository root, which
+# the root .gitignore already covers.
 allure-results/
-
-# Gradle
-build/
-.gradle/
-
-# IntelliJ
-.idea/
-*.iml

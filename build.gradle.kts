@@ -41,6 +41,7 @@ apiValidation {
     add("metro-common")
     add("compiler-tests")
     add("compiler-compat")
+    add("ide-integration-tests")
   }
   ignoredPackages += metroApiIgnoredPackages
   nonPublicMarkers += metroApiNonPublicMarkers
