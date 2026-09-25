@@ -158,18 +158,16 @@ jobs:
         id: generate_tests
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:generateTests --quiet \
-            '-Pkotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version && '-Pkotlin.compiler.plugin.devkit.useLatestDev=true' || format('-Pkotlin.compiler.plugin.devkit.defaultTestVersion={0}', matrix.kotlin-compiler) }} \
             $DEVKIT_NARROW \
-            '-Pkotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: Test compiler
         run: |
           ./scripts/run-ci-gradle.sh :compiler:defaultTest :compiler-tests:defaultTest --continue --quiet \
-            '-Pkotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version && '-Pkotlin.compiler.plugin.devkit.useLatestDev=true' || format('-Pkotlin.compiler.plugin.devkit.defaultTestVersion={0}', matrix.kotlin-compiler) }} \
             $DEVKIT_NARROW \
-            '-Pkotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -180,9 +178,8 @@ jobs:
         if: ${{ !cancelled() && steps.generate_tests.outcome == 'success' && matrix.for-ide != 'true' }}
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:defaultFunctionalTest --continue --quiet \
-            '-Pkotlin.compiler.plugin.devkit.defaultTestVersion=${{ matrix.kotlin-compiler }}' \
+            ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version && '-Pkotlin.compiler.plugin.devkit.useLatestDev=true' || format('-Pkotlin.compiler.plugin.devkit.defaultTestVersion={0}', matrix.kotlin-compiler) }} \
             $DEVKIT_NARROW \
-            '-Pkotlin.compiler.plugin.devkit.testAgainst=${{ matrix.kotlin-compiler }}' \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=jvm \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
