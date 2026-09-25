@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.diagnostics.KtDiagnosticFactory1
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+import org.jetbrains.kotlin.ir.util.file
 import org.jetbrains.kotlin.ir.util.fileOrNull
 import org.jetbrains.kotlin.ir.util.parentClassOrNull
 import org.jetbrains.kotlin.ir.util.sourceElement
@@ -141,7 +142,7 @@ private fun <A : Any> IrMetroContext.reportCompatImpl(
       }
     @Suppress("DEPRECATION") messageCollector.report(severity, message, location)
   } else {
-    diagnosticReporter.at(effectiveDeclaration).report(factory, a)
+    diagnosticReporter.at(effectiveDeclaration, effectiveDeclaration.file).report(factory, a)
   }
 
   if (factory.severity == Severity.ERROR) {

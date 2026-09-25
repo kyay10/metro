@@ -11,22 +11,29 @@ import dev.zacsweers.metro.compiler.symbols.Symbols
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.builders.declarations.addConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildClass
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.createBlockBody
+import org.jetbrains.kotlin.ir.expressions.impl.IrDelegatingConstructorCallImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrInstanceInitializerCallImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.addChild
-import org.jetbrains.kotlin.ir.util.addSimpleDelegatingConstructor
+import org.jetbrains.kotlin.ir.util.copyTo
 import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
 import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
+import org.jetbrains.kotlin.utils.memoryOptimizedMap
 
 context(context: IrMetroContext)
 internal fun IrClass.getOrCreateMetadataVisibleHiddenNestedClass(
@@ -164,3 +171,45 @@ internal fun IrClass.addMetadataVisibleDefaultConstructor() {
       context.metadataDeclarationRegistrar.registerConstructorAsMetadataVisible(this)
     }
 }
+
+fun IrClass.addSimpleDelegatingConstructor(
+  superConstructor: IrConstructor,
+  irBuiltIns: IrBuiltIns,
+  isPrimary: Boolean = false,
+  origin: IrDeclarationOrigin? = null,
+): IrConstructor = addConstructor {
+  val klass = this@addSimpleDelegatingConstructor
+  this.startOffset = klass.startOffset
+  this.endOffset = klass.endOffset
+  this.origin = origin ?: klass.origin
+  this.visibility = superConstructor.visibility
+  this.isPrimary = isPrimary
+}
+  .also { constructor ->
+    constructor.parameters =
+      superConstructor.parameters.memoryOptimizedMap { parameter ->
+        parameter.copyTo(constructor)
+      }
+
+    constructor.body =
+      factory.createBlockBody(
+        startOffset,
+        endOffset,
+        listOf(
+          IrDelegatingConstructorCallImpl(
+              startOffset,
+              endOffset,
+              irBuiltIns.unitType,
+              superConstructor.symbol,
+              0,
+            )
+            .apply {
+              constructor.parameters.forEach { parameter ->
+                arguments[parameter.indexInParameters] =
+                  IrGetValueImpl(startOffset, endOffset, parameter.type, parameter.symbol)
+              }
+            },
+          IrInstanceInitializerCallImpl(startOffset, endOffset, this.symbol, irBuiltIns.unitType),
+        ),
+      )
+  }

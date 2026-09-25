@@ -6,6 +6,7 @@ import dev.zacsweers.metro.compiler.compat.pluginGeneratedSourceElementKind
 import org.jetbrains.kotlin.KtSourceElement
 import org.jetbrains.kotlin.compiler.plugin.devkit.fakeElementCompat
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
+import org.jetbrains.kotlin.fir.FirImplementationDetail
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationArgumentMapping
@@ -34,6 +35,11 @@ private fun FirAnnotation.copy(newParent: FirBasedSymbol<*>): FirAnnotation {
   return NonAcceptingFirAnnotationCall(this, newParent)
 }
 
+interface FirAnnotationCompat {
+  // Introduced in 2.5.0 dev
+  @FirImplementationDetail fun replaceSource(newSource: KtSourceElement?)
+}
+
 /**
  * An [FirAnnotationCall] that no-ops [acceptChildren] because `FirGeneratedElementsValidator`
  * validates incorrectly when we copy annotations.
@@ -43,9 +49,9 @@ private fun FirAnnotation.copy(newParent: FirBasedSymbol<*>): FirAnnotation {
 private class NonAcceptingFirAnnotationCall(
   private val delegate: FirAnnotationCall,
   override val containingDeclarationSymbol: FirBasedSymbol<*>,
-) : FirAnnotationCall() {
-  override val source: KtSourceElement?
-    get() = delegate.source?.fakeElementCompat(pluginGeneratedSourceElementKind)
+) : FirAnnotationCall(), FirAnnotationCompat {
+  override var source: KtSourceElement? = delegate.source
+    get() = field?.fakeElementCompat(pluginGeneratedSourceElementKind)
 
   @UnresolvedExpressionTypeAccess
   override val coneTypeOrNull: ConeKotlinType?
@@ -81,6 +87,11 @@ private class NonAcceptingFirAnnotationCall(
 
   override fun replaceAnnotations(newAnnotations: List<FirAnnotation>) {
     delegate.replaceAnnotations(newAnnotations)
+  }
+
+  @FirImplementationDetail
+  override fun replaceSource(newSource: KtSourceElement?) {
+    source = newSource
   }
 
   override fun replaceUseSiteTarget(newUseSiteTarget: AnnotationUseSiteTarget?) {

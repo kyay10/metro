@@ -164,7 +164,7 @@ internal object MembersInjectChecker : FirClassChecker(MppCheckerKind.Common) {
 
           if (param.hasMetroDefault(session)) {
             reporter.reportOn(
-              param.defaultValueSource ?: param.source,
+              param.resolvedDefaultValue?.source ?: param.source,
               MetroDiagnostics.MEMBERS_INJECT_ERROR,
               "Function member injection cannot have default values.",
             )
