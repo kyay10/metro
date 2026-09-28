@@ -81,7 +81,7 @@ open class AbstractDiagnosticTest(vararg config: TestConfigurationBuilder.() -> 
  */
 private fun TestConfigurationBuilder.configureWithMetroDiagnosticHandlers() {
   defaultDirectives {
-    LATEST_PHASE_IN_PIPELINE with TestPhase.BACKEND
+    LATEST_PHASE_IN_PIPELINE with TestPhase.entries.last()
     LANGUAGE + "+EnableDfaWarningsInK2"
   }
 

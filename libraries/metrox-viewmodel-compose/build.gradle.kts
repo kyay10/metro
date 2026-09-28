@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 plugins {
-  alias(libs.plugins.kotlin.multiplatform)
-  alias(libs.plugins.kotlin.plugin.compose)
+  alias(libs.plugins.kotlin.multiplatform.published)
+  alias(libs.plugins.kotlin.plugin.compose.published)
   alias(libs.plugins.compose)
   id("metro.base")
   id("metro.publish")
@@ -21,14 +21,7 @@ kotlin {
     commonMain {
       dependencies {
         api(project(":metrox-viewmodel"))
-        api(libs.kotlin.stdlib.published)
         api(libs.jetbrains.lifecycle.viewmodel.compose)
-      }
-    }
-    webMain {
-      dependencies {
-        // https://youtrack.jetbrains.com/issue/KT-84582
-        api(libs.kotlin.stdlib)
       }
     }
     commonTest { dependencies { api(libs.compose.ui.test) } }

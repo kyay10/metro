@@ -168,14 +168,14 @@ dependencies {
 kotlin {
   sourceSets {
     entryPoint.dependencies {
-      compileOnly(project(":runtime"))
+      compileOnly("$group:runtime:$version")
       compileOnly(libs.poko.annotations)
     }
     commonMain.dependencies {
       compileOnly(libs.kotlin.stdlib)
       compileOnly(libs.poko.annotations)
       implementation(project(":metro-common"))
-      implementation(project(":runtime"))
+      implementation("$group:runtime:$version")
       implementation(libs.androidx.collection)
       implementation(libs.androidx.tracing.wire)
       implementation(libs.picnic)

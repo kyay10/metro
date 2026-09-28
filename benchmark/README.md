@@ -508,7 +508,7 @@ Two benchmarks run in parallel:
 ### Triggering Benchmarks
 
 **Automatic (on push to main):**
-- Runs when `compiler/`, `runtime/`, or `benchmark/` paths change
+- Runs when `compiler/`, `libraries/runtime/`, or `benchmark/` paths change
 - Results are stored for historical tracking
 
 **Manual (on PRs):**

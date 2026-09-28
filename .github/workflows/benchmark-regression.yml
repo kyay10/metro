@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'compiler/**'
-      - 'runtime/**'
+      - 'libraries/runtime/**'
       - 'benchmark/**'
   pull_request:
     types: [labeled]

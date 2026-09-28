@@ -4,11 +4,15 @@
 
 import org.jetbrains.kotlin.compiler.plugin.devkit.setClasspathProperty
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
   pluginDevKit("compiler-library")
 }
+
+pluginDevKit.companionLibrariesKotlinVersion =
+  KotlinToolingVersion(libs.versions.kotlinPublished.get())
 
 // Configure the compiler-version-related test properties per registered devkit test suite, so
 // each `<version>Test` suite reports its own pinned version at runtime rather than a single
@@ -20,8 +24,7 @@ pluginDevKit.testAgainst.configureEach {
 }
 
 pluginDevKit.testDataLibraries {
-  common(project(":runtime"))
-  register("runtimeCoroutines") { common(project(":runtime-coroutines")) }
+  register("runtimeCoroutines") { common("$group:runtime-coroutines:$version") }
   register("coroutines", isTransitive = true) {
     common(libs.coroutines) {
       exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")

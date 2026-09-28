@@ -1,6 +1,5 @@
 // Copyright (C) 2024 Zac Sweers
 // SPDX-License-Identifier: Apache-2.0
-import kotlinx.validation.ExperimentalBCVApi
 
 plugins {
   alias(libs.plugins.kotlin.jvm) apply false
@@ -8,13 +7,13 @@ plugins {
   alias(libs.plugins.android.library) apply false
   alias(libs.plugins.android.lint) apply false
   alias(libs.plugins.android.kmp) apply false
-  alias(libs.plugins.dokka)
   alias(libs.plugins.ksp) apply false
   alias(libs.plugins.mavenPublish) apply false
-  alias(libs.plugins.binaryCompatibilityValidator)
   alias(libs.plugins.poko) apply false
   alias(libs.plugins.wire) apply false
   id("metro.yarnNode")
+  id("metro.dokka")
+  id("metro.apiValidation")
 }
 
 // Autoconfigure git to use project-specific config (hooks)
@@ -42,28 +41,10 @@ apiValidation {
     add("compiler-tests")
     add("compiler-compat")
   }
-  ignoredPackages += metroApiIgnoredPackages
-  nonPublicMarkers += metroApiNonPublicMarkers
-  @OptIn(ExperimentalBCVApi::class)
-  klib {
-    // This is only really possible to run on macOS
-    // strictValidation = true
-    enabled = true
-  }
-}
-
-dokka {
-  dokkaPublications.html {
-    // NOTE: This path must be in sync with `mkdocs.yml`'s API nav config path
-    outputDirectory.set(rootDir.resolve("docs/api"))
-    includes.from(project.layout.projectDirectory.file("README.md"))
-  }
 }
 
 subprojects {
   apply(plugin = "metro.base")
-  group = project.property("GROUP") as String
-  version = project.property("VERSION_NAME") as String
 }
 
 dependencies {
@@ -74,8 +55,8 @@ dependencies {
   dokka(project(":interop-javax"))
   dokka(project(":metro-trace"))
   dokka(project(":metrox-android"))
-  dokka(project(":metrox-viewmodel"))
-  dokka(project(":metrox-viewmodel-compose"))
-  dokka(project(":runtime"))
-  dokka(project(":runtime-coroutines"))
+  dokka("$group:metrox-viewmodel:$version")
+  dokka("$group:metrox-viewmodel-compose:$version")
+  dokka("$group:runtime:$version")
+  dokka("$group:runtime-coroutines:$version")
 }

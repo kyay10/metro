@@ -2,28 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 pluginManagement {
   includeBuild("build-logic")
+  includeBuild("build-logic-settings")
   repositories {
     mavenCentral()
     google()
     gradlePluginPortal()
     maven("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
-    mavenLocal()
-  }
-  plugins { id("com.gradle.develocity") version "4.5.0" }
-}
-
-dependencyResolutionManagement {
-  repositories {
-    mavenCentral()
-    google()
-    maven("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
-    mavenLocal()
   }
 }
 
 plugins {
-  kotlin("compiler.plugin.devkit") version "0.0.3-dev-55d49f2"
-  id("com.gradle.develocity")
+  id("devkit")
+}
+
+pluginDevKit {
+  includeBuildWithChecks("libraries")
+  companionLibrary("runtime")
 }
 
 rootProject.name = "metro"
@@ -40,28 +34,6 @@ include(
   ":metro-trace",
   ":metro-common",
   ":metrox-android",
-  ":metrox-viewmodel",
-  ":metrox-viewmodel-compose",
-  ":runtime",
-  ":runtime-coroutines",
 )
 
-val VERSION_NAME: String by extra.properties
-
-develocity {
-  buildScan {
-    termsOfUseUrl = "https://gradle.com/terms-of-service"
-    termsOfUseAgree = "yes"
-
-    tag(if (System.getenv("CI").isNullOrBlank()) "Local" else "CI")
-    tag(VERSION_NAME)
-
-    obfuscation {
-      username { "Redacted" }
-      hostname { "Redacted" }
-      ipAddresses { addresses -> addresses.map { "0.0.0.0" } }
-    }
-  }
-}
-
-enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
+includeBuild(".")

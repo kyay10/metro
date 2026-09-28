@@ -11,6 +11,6 @@ metroArtifact {
 }
 
 dependencies {
-  api(project(":runtime"))
+  api("$group:runtime:$version")
   api(libs.javaxInject)
 }

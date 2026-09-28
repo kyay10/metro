@@ -11,7 +11,7 @@ metroArtifact {
 }
 
 dependencies {
-  api(project(":runtime"))
+  api("$group:runtime:$version")
   // Guice dropped javax.inject in 7.0
   api(project(":interop-jakarta"))
   api(libs.guice)

@@ -3,8 +3,6 @@
 package dev.zacsweers.metro.gradle
 
 import com.autonomousapps.kit.RootProject
-import com.autonomousapps.kit.gradle.Repositories
-import com.autonomousapps.kit.gradle.Repository
 import org.jetbrains.kotlin.compiler.plugin.devkit.test.AbstractDevKitGradleProject
 
 abstract class MetroProject(
@@ -22,16 +20,6 @@ abstract class MetroProject(
   override val extraGradleProperties = super.extraGradleProperties + METRO_TESTKIT_GRADLE_PROPERTIES
 
   override fun pluginConfigBlock(): String = buildMetroBlock()
-
-  override fun repositories(defaults: List<Repository>): Repositories =
-    Repositories(
-      mutableListOf<Repository>().apply {
-        addAll(defaults)
-        add(Repository.ofMaven("https://packages.jetbrains.team/maven/p/kt/bootstrap"))
-        add(Repository.ofMaven("https://packages.jetbrains.team/maven/p/kt/dev/"))
-        add(Repository.ofMaven("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies/"))
-      }
-    )
 
   /** Applies the Metro settings; used by fixtures that build custom project structures. */
   protected fun RootProject.Builder.withMetroSettings() = withDevKitSettings()

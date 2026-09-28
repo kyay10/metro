@@ -11,7 +11,7 @@ metroArtifact {
 }
 
 dependencies {
-  api(project(":runtime"))
+  api("$group:runtime:$version")
   api(project(":interop-javax"))
   api(project(":interop-jakarta"))
   api(libs.dagger.runtime)

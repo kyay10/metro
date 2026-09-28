@@ -45,7 +45,7 @@ open class AbstractJsDiagnosticTest :
 
         // Unless overriden, assume the test will fail within the frontend.
         RUN_PIPELINE_TILL.with(TestPhase.FRONTEND)
-        LATEST_PHASE_IN_PIPELINE.with(TestPhase.BACKEND)
+        LATEST_PHASE_IN_PIPELINE.with(TestPhase.entries.last())
       }
 
       configureFirHandlersStep {

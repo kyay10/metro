@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-  api(project(":runtime"))
+  api("$group:runtime:$version")
   api(libs.androidx.tracing)
   implementation(libs.androidx.tracing.wire)
   testImplementation(libs.kotlin.testJunit5)

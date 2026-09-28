@@ -18,7 +18,7 @@ android {
 }
 
 dependencies {
-  api(project(":runtime"))
+  api("$group:runtime:$version")
 
   implementation(libs.androidx.activity)
   implementation(libs.androidx.annotation)

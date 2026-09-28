@@ -24,6 +24,8 @@ compose-jb = "1.10.3"
 jetbrains-lifecycle-navigation3 = "2.10.0"
 jetbrains-navigation3 = "1.1.1"
 dagger = "2.60.1"
+devkit = "0.0.3-dev-e2e56c9"
+develocity = "4.5.0"
 gjf = "1.35.0"
 jdk = "25"
 robolectric = "4.17-beta-2"
@@ -33,7 +35,7 @@ compilerJvmTarget = "21"
 ideaJvmTarget = "21"
 kct = "0.13.0"
 kotlin = "2.4.0"
-kotlinPublished = "2.3.0"
+kotlinPublished = "2.3.20"
 kotlinInject = "0.9.0"
 koin = "4.2.2"
 koin-compiler = "1.1.0"
@@ -74,7 +76,9 @@ kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "ko
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-multiplatform-published = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlinPublished" }
 kotlin-plugin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-plugin-compose-published = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinPublished" }
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlinx-benchmark = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "kotlinx-benchmark" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
@@ -170,6 +174,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-stdlib-published = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinPublished" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-test-published = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinPublished" }
 kotlin-testJunit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 
 kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinx-benchmark" }
@@ -215,3 +220,6 @@ testkit-truth = { module = "com.autonomousapps:gradle-testkit-truth", version = 
 truth = { module = "com.google.truth:truth", version = "1.4.5" }
 kct = { module = "dev.zacsweers.kctfork:core", version.ref = "kct" }
 kct-ksp = { module = "dev.zacsweers.kctfork:ksp", version.ref = "kct" }
+
+devkit-settings = { module = "org.jetbrains.kotlin.compiler.plugin.devkit:settings", version.ref = "devkit" }
+develocity = { module = "com.gradle.develocity:com.gradle.develocity.gradle.plugin", version.ref = "develocity" }

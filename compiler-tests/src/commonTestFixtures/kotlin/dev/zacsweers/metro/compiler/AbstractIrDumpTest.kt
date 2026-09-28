@@ -58,7 +58,7 @@ open class AbstractIrDumpTest :
 
       useFailureSuppressorsCompat(
         ::BlackBoxCodegenSuppressor,
-        ::PhasedPipelineChecker.bind(TestPhase.BACKEND),
+        ::PhasedPipelineChecker.bind(TestPhase.entries.last()),
       )
       enableMetaInfoHandler()
 
@@ -70,7 +70,7 @@ open class AbstractIrDumpTest :
         +WITH_STDLIB
         commonMetroTestDirectives()
 
-        LATEST_PHASE_IN_PIPELINE with TestPhase.BACKEND
+        LATEST_PHASE_IN_PIPELINE with TestPhase.entries.last()
         +IGNORE_DEXING // Avoids loading R8 from the classpath.
         +DISABLE_GENERATED_FIR_TAGS
 

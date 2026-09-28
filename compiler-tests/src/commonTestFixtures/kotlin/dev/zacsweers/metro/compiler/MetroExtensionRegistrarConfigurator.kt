@@ -33,7 +33,6 @@ import kotlin.io.path.Path
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import org.jetbrains.kotlin.compiler.plugin.devkit.services.TEST_COMPILER_VERSION
 import org.jetbrains.kotlin.compiler.plugin.devkit.services.configureDefaultTestDataLibraries
 import org.jetbrains.kotlin.compiler.plugin.devkit.services.configureTestDataLibrary
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -47,7 +46,6 @@ import org.jetbrains.kotlin.test.services.EnvironmentConfigurator
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.defaultsProvider
 import org.jetbrains.kotlin.test.services.temporaryDirectoryManager
-import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 fun TestConfigurationBuilder.configurePlugin() {
   useConfigurators({ MetroExtensionRegistrarConfigurator(it) })
@@ -373,13 +371,11 @@ class MetroExtensionRegistrarConfigurator(testServices: TestServices) :
   }
 }
 
-private val MIN_KOTLIN_VERSION_FOR_JS_FIR_CONTRIBUTION_HINTS = KotlinToolingVersion("2.3.21")
-
 private fun TestServices.shouldGenerateContributionHintsInFirForBackend(): Boolean {
   return when (defaultsProvider.targetBackend) {
     TargetBackend.JS_IR,
     TargetBackend.JS_IR_ES6 -> {
-      TEST_COMPILER_VERSION >= MIN_KOTLIN_VERSION_FOR_JS_FIR_CONTRIBUTION_HINTS
+      true
     }
     else -> false
   }

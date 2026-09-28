@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 plugins {
-  alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.kotlin.multiplatform.published)
   id("metro.base")
   id("metro.publish")
 }
@@ -16,16 +16,9 @@ metroProject { configureCommonKmpTargets("metro-runtime") }
 
 kotlin {
   sourceSets {
-    commonMain { dependencies { api(libs.kotlin.stdlib.published) } }
-    webMain {
-      dependencies {
-        // https://youtrack.jetbrains.com/issue/KT-84582
-        api(libs.kotlin.stdlib)
-      }
-    }
     commonTest {
       dependencies {
-        implementation(libs.kotlin.test)
+        implementation(libs.kotlin.test.published)
         implementation(libs.coroutines)
         implementation(libs.coroutines.test)
       }

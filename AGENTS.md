@@ -81,7 +81,7 @@ To create a new test, add a source file under the appropriate directory and then
 - `compiler/src/main/kotlin/dev/zacsweers/metro/compiler/graph/` - Dependency graph logic
 
 **API Changes:**
-- `runtime/src/commonMain/kotlin/dev/zacsweers/metro/` - Public annotation APIs
+- `libraries/runtime/src/commonMain/kotlin/dev/zacsweers/metro/` - Public annotation APIs
 - Update both runtime and samples when changing public APIs
 
 **Build Configuration:**
