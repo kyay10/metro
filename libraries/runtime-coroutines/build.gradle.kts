@@ -24,7 +24,7 @@ kotlin {
     }
     commonTest {
       dependencies {
-        implementation(libs.kotlin.test)
+        implementation(libs.kotlin.test.published)
         implementation(libs.coroutines.test)
       }
     }
