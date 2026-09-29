@@ -68,6 +68,13 @@ jobs:
           path: build/functionalTestRepo
           retention-days: 1
 
+      - name: Upload Metro libraries artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: metro-libraries-repo
+          path: libraries/build/functionalTestRepo
+          retention-days: 1
+
   ide-tests:
     needs:
       - generate-matrix
@@ -103,6 +110,12 @@ jobs:
             with:
               name: metro-repo
               path: build/functionalTestRepo
+
+          - name: Download Metro libraries artifacts
+            uses: actions/download-artifact@v8
+            with:
+              name: metro-libraries-repo
+              path: libraries/build/functionalTestRepo
 
           - name: Setup Gradle
             uses: ./.github/actions/setup-gradle

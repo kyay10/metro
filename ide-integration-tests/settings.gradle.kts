@@ -34,6 +34,7 @@ rootProject.name = "metro-ide-integration-tests"
 // Skip the Metro included build when artifacts are pre-built (e.g., CI matrix jobs).
 // This avoids configuring the full Metro project (and downloading Konan, etc.).
 if (System.getenv("METRO_PREBUILT") == null) {
+  includeBuild("../libraries") { name = "libraries" }
   includeBuild("..") { name = "metro" }
 }
 

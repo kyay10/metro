@@ -69,6 +69,9 @@ tasks.test {
   gradle.includedBuilds
     .find { it.name == "metro" }
     ?.let { dependsOn(it.task(":gradle-plugin:installForFunctionalTest")) }
+  gradle.includedBuilds
+    .find { it.name == "libraries" }
+    ?.let { dependsOn(it.task(":installForFunctionalTest")) }
   useJUnitPlatform()
   // IDE Starter tests need significant memory and time
   jvmArgs("-Xmx4g", "-Xlog:cds=off")

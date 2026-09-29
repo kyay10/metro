@@ -32,6 +32,8 @@ plugins { id("com.gradle.develocity") }
 
 rootProject.name = "metro-idea-plugin"
 
+includeBuild("../libraries")
+
 includeBuild("..")
 
 develocity {
