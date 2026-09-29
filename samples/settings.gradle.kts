@@ -67,9 +67,10 @@ include(
   ":weather-app",
 )
 
-includeBuild("..")
-
+// KT-88960. The order sadly matters here
 includeBuild("../libraries")
+
+includeBuild("..")
 
 develocity {
   buildScan {
