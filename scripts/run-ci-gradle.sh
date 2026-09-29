@@ -83,5 +83,5 @@ gradle_jvm_args="-Xmx4g -Dfile.encoding=UTF-8 --enable-native-access=ALL-UNNAMED
 ./gradlew \
   --max-workers=4 \
   "-Dorg.gradle.jvmargs=$gradle_jvm_args" \
-  -Pkotlin.daemon.jvmargs=-Xmx2g \
+  -Pkotlin.daemon.jvmargs=-Xmx4g \
   "$@"
