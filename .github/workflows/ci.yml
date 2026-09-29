@@ -498,7 +498,7 @@ jobs:
         # `all` exercises every KmpTarget entry on this OS — host native is OS-specific (macosArm64,
         # mingwX64, etc.), so each runner covers a different native target naturally.
         run: |
-          ./gradlew :runtime:allTests :runtime-coroutines:allTests :gradle-plugin:defaultFunctionalTest --continue --quiet \
+          ./gradlew :libraries:runtime:allTests :libraries:runtime-coroutines:allTests :gradle-plugin:defaultFunctionalTest --continue --quiet \
             $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
             -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=all
 

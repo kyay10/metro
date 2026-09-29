@@ -69,6 +69,8 @@ include(
 
 includeBuild("..")
 
+includeBuild("../libraries")
+
 develocity {
   buildScan {
     termsOfUseUrl = "https://gradle.com/terms-of-service"
