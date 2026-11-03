@@ -14,19 +14,6 @@ concurrency:
   group: 'ci-${{ github.event.merge_group.head_ref || github.head_ref }}-${{ github.workflow }}'
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-env:
-  # By default the devkit resolves its version set from the `devkit.*` range properties in
-  # gradle.properties — that full set is what `generate-matrix` reads. Steps that target one
-  # specific version park those ranges outside any version that exists, so `testAgainst` alone
-  # decides what gets configured. Expand unquoted, and always pair it with a `testAgainst` (an
-  # empty one means "just the build's own Kotlin"). The build's own Kotlin always has a target, so
-  # this narrows to one version, or two when the requested one differs from it.
-  DEVKIT_NARROW: >-
-    -Pkotlin.compiler.plugin.devkit.minCliVersion=99.0.0
-    -Pkotlin.compiler.plugin.devkit.maxCliVersion=99.9.9
-    -Pkotlin.compiler.plugin.devkit.minIdeaVersion=9999
-    -Pkotlin.compiler.plugin.devkit.useLatestDev=false
-
 jobs:
   format:
     name: format
@@ -86,6 +73,9 @@ jobs:
     name: core artifacts
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    env:
+      # Register one Kotlin version only (see config() in build-logic/src/main/kotlin/devkit.kt)
+      METRO_CI_SINGLE_VERSION: true
     permissions:
       checks: write
 
@@ -108,7 +98,6 @@ jobs:
             -x :compiler:check \
             -x :compiler-tests:check \
             -x :gradle-plugin:check \
-            $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: (Fail-only) Upload reports
@@ -136,6 +125,7 @@ jobs:
       fail-fast: false
     env:
       METRO_TEST_OMIT_REDUNDANT_MIRRORS: ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.default_kotlin_version || matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version }}
+      METRO_CI_SINGLE_VERSION: true
     permissions:
       checks: write
 
@@ -159,7 +149,6 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:generateTests --quiet \
             ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version && '-Pkotlin.compiler.plugin.devkit.useLatestDev=true' || format('-Pkotlin.compiler.plugin.devkit.defaultTestVersion={0}', matrix.kotlin-compiler) }} \
-            $DEVKIT_NARROW \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
@@ -167,7 +156,6 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :compiler:defaultTest :compiler-tests:defaultTest --continue --quiet \
             ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version && '-Pkotlin.compiler.plugin.devkit.useLatestDev=true' || format('-Pkotlin.compiler.plugin.devkit.defaultTestVersion={0}', matrix.kotlin-compiler) }} \
-            $DEVKIT_NARROW \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -179,7 +167,6 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:defaultFunctionalTest --continue --quiet \
             ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version && '-Pkotlin.compiler.plugin.devkit.useLatestDev=true' || format('-Pkotlin.compiler.plugin.devkit.defaultTestVersion={0}', matrix.kotlin-compiler) }} \
-            $DEVKIT_NARROW \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=jvm \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -203,6 +190,8 @@ jobs:
     name: shaded compiler / JDK 21
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    env:
+      METRO_CI_SINGLE_VERSION: true
     permissions:
       checks: write
 
@@ -230,7 +219,6 @@ jobs:
       - name: Test shaded compiler
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:defaultTest --quiet \
-            $DEVKIT_NARROW \
             -Pmetro.testJavaVersion=21 \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.compiler.ShadedCompilerTest.optional terminal providers initialize from the shaded compiler jar' \
@@ -240,7 +228,6 @@ jobs:
       - name: Test shaded compiler through Gradle
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:defaultFunctionalTest --quiet \
-            $DEVKIT_NARROW \
             -Pmetro.testJavaVersion=21 \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.gradle.MetroArtifactsTest.shaded compiler renders rich diagnostics' \
@@ -266,6 +253,8 @@ jobs:
     name: ${{ github.ref == 'refs/heads/main' && 'js box / full' || 'web / smoke' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    env:
+      METRO_CI_SINGLE_VERSION: true
     permissions:
       checks: write
 
@@ -282,14 +271,12 @@ jobs:
       - name: Generate tests
         run: |
           ./gradlew :compiler-tests:generateTests --quiet \
-            $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: Run JS box smoke tests
         if: github.ref != 'refs/heads/main'
         run: |
           ./gradlew :compiler-tests:defaultTest --quiet \
-            $DEVKIT_NARROW \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Inject$Assisted.testBasicAssistedInject' \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Multibindings.testMapProviderLazyValues' \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Suspend.testMixedSuspendChain' \
@@ -300,7 +287,6 @@ jobs:
         run: |
           ./gradlew :gradle-plugin:defaultFunctionalTest --quiet \
             -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=wasmJs \
-            $DEVKIT_NARROW \
             --tests 'dev.zacsweers.metro.gradle.incremental.ICTests.icWorksWhenAddingAParamToExistingInjectedTypeWithScopeWithZeroToOneParams*' \
             -Dorg.gradle.configuration-cache.read-only=true
 
@@ -308,7 +294,6 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           ./gradlew :compiler-tests:defaultTest --continue --quiet \
-            $DEVKIT_NARROW \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.*.JsFastInitBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.*.JsContributionProvidersBoxTestGenerated*'
@@ -335,6 +320,8 @@ jobs:
   kmp-functional:
     name: ${{ format('kmp functional / {0}{1}', matrix.target, github.ref != 'refs/heads/main' && ' (skipped)' || '') }}
     runs-on: ubuntu-latest
+    env:
+      METRO_CI_SINGLE_VERSION: true
     permissions:
       checks: write
     strategy:
@@ -364,7 +351,6 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           ./gradlew :gradle-plugin:defaultFunctionalTest --continue --quiet \
-            $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
             -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=${{ matrix.target }}
 
       - name: (Fail-only) Upload reports
@@ -459,6 +445,8 @@ jobs:
   multiplatform-tests:
     name: ${{ format('multiplatform / {0}{1}', matrix.os, github.ref != 'refs/heads/main' && ' (skipped)' || '') }}
     runs-on: ${{ github.ref == 'refs/heads/main' && matrix.os || 'ubuntu-latest' }}
+    env:
+      METRO_CI_SINGLE_VERSION: true
     permissions:
       checks: write
     # Windows runners default to PowerShell, which mis-parses gradle `-Pkey.with.dots=value` args
@@ -499,7 +487,6 @@ jobs:
         # mingwX64, etc.), so each runner covers a different native target naturally.
         run: |
           ./gradlew :libraries:runtime:allTests :libraries:runtime-coroutines:allTests :gradle-plugin:defaultFunctionalTest --continue --quiet \
-            $DEVKIT_NARROW '-Pkotlin.compiler.plugin.devkit.testAgainst=' \
             -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=all
 
       - name: Check samples

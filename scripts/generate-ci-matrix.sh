@@ -7,8 +7,9 @@ set -euo pipefail
 
 # Generate CI matrix for compiler-compat modules
 # Both the version set and the default version come from the `:compiler-compat:compilerVersions`
-# Gradle task, which reports whatever the compiler plugin devkit resolved from the
-# `kotlin.compiler.plugin.devkit.*` properties in gradle.properties.
+# Gradle task, which reports whatever the compiler plugin devkit resolved from `config()` in
+# build-logic/src/main/kotlin/devkit.kt and the `kotlin.compiler.plugin.devkit.*` command-line
+# properties.
 
 # --versions-only flag is for ./metrow check use to only print the versions and exit
 versions_only=false
