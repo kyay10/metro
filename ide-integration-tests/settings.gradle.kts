@@ -9,6 +9,7 @@ pluginManagement {
     maven("https://redirector.kotlinlang.org/maven/bootstrap")
     maven("https://redirector.kotlinlang.org/maven/dev/")
     maven("https://redirector.kotlinlang.org/maven/intellij-dependencies/")
+    maven("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
   }
 }
 
