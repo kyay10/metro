@@ -17,7 +17,6 @@ plugins {
 
 pluginDevKit {
   includeBuildWithChecks("libraries")
-  companionLibrary("runtime")
 }
 
 rootProject.name = "metro"

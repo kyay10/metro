@@ -6,16 +6,14 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.util.Properties
 import org.jetbrains.kotlin.compiler.plugin.devkit.ProjectOrGav
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 plugins {
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.kotlin.plugin.serialization)
   `java-gradle-plugin`
-  alias(libs.plugins.buildConfig)
   alias(libs.plugins.android.lint)
   alias(libs.plugins.shadow) apply false
-  pluginDevKit("gradle-plugin")
+  id("devkit.gradle")
   id("metro.base")
   id("metro.publish")
 }
@@ -62,7 +60,6 @@ buildConfig {
 
 pluginDevKit {
   addRuntimeDependency = false
-  companionLibrariesKotlinVersion = KotlinToolingVersion(libs.versions.kotlinPublished.get())
 }
 
 gradlePlugin {

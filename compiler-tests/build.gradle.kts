@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
-  pluginDevKit("compiler-library")
+  id("devkit.library")
 }
 
 pluginDevKit.companionLibrariesKotlinVersion =

@@ -4,7 +4,6 @@ package dev.zacsweers.metro.compiler
 
 import org.jetbrains.kotlin.compiler.plugin.devkit.runners.BackportedFirPhasedDiagnosticTest
 import org.jetbrains.kotlin.compiler.plugin.devkit.runners.DevKitTest
-import org.jetbrains.kotlin.compiler.plugin.devkit.runners.devKitDefaults
 import org.jetbrains.kotlin.compiler.plugin.devkit.setupJvmPipelineSteps
 import org.jetbrains.kotlin.compiler.plugin.devkit.useFailureSuppressorsCompat
 import org.jetbrains.kotlin.config.JvmTarget
@@ -50,7 +49,6 @@ open class AbstractDiagnosticTest(vararg config: TestConfigurationBuilder.() -> 
       object : BackportedFirPhasedDiagnosticTest(parser = FirParser.LightTree) {}::configure
     },
     {
-      devKitDefaults()
       configurePlugin()
 
       useMetaTestConfigurators(::MetroTestConfigurator)

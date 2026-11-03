@@ -22,7 +22,7 @@ plugins {
   alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.kotlin.plugin.serialization)
   alias(libs.plugins.poko)
-  pluginDevKit("compiler-plugin")
+  id("devkit.compiler")
   alias(libs.plugins.wire)
   id("metro.publish")
   // apply false to put metro on the classpath. Conditionally applied below.

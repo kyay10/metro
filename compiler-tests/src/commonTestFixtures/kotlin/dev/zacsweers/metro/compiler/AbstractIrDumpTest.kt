@@ -3,7 +3,6 @@
 package dev.zacsweers.metro.compiler
 
 import org.jetbrains.kotlin.compiler.plugin.devkit.runners.DevKitTest
-import org.jetbrains.kotlin.compiler.plugin.devkit.runners.devKitDefaults
 import org.jetbrains.kotlin.compiler.plugin.devkit.setupJvmPipelineSteps
 import org.jetbrains.kotlin.compiler.plugin.devkit.useFailureSuppressorsCompat
 import org.jetbrains.kotlin.config.JvmTarget
@@ -41,7 +40,6 @@ open class AbstractIrDumpTest :
   DevKitTest(
     TargetBackend.JVM_IR,
     {
-      devKitDefaults()
       setupJvmPipelineSteps(FirParser.LightTree)
       commonHandlersForCodegenTest()
       additionalK2ConfigurationForIrTextTest(FirParser.LightTree)

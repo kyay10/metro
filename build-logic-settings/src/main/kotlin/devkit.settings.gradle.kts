@@ -1,17 +1,9 @@
 // Copyright (C) 2026 Zac Sweers
 // SPDX-License-Identifier: Apache-2.0
-import org.jetbrains.kotlin.compiler.plugin.devkit.BetaAndRc
 
 plugins {
   kotlin("compiler.plugin.devkit")
   id("com.gradle.develocity")
-}
-
-pluginDevKit {
-  cliVersions("2.3.20", betaAndRc = BetaAndRc.LATEST)
-  ideaVersions("261", includeRc = true, includeEap = true)
-  useLatestDev()
-  pluginPackage("dev.zacsweers.metro.compiler")
 }
 
 dependencyResolutionManagement {

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
-  pluginDevKit("compiler-library")
+  id("devkit.library")
   id("metro.publish")
 }
 

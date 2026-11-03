@@ -5,6 +5,7 @@ dependencyResolutionManagement {
     mavenCentral()
     google()
     gradlePluginPortal()
+    maven("https://packages.jetbrains.team/maven/p/compiler-plugin-dev-kit/eap")
   }
   versionCatalogs { maybeCreate("libs").apply { from(files("../gradle/libs.versions.toml")) } }
 }

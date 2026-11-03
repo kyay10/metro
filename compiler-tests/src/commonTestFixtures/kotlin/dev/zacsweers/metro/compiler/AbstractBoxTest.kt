@@ -6,9 +6,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaConstructor
 import org.jetbrains.kotlin.compiler.plugin.devkit.runners.BackportedJvmBlackBoxCodegenTestBase
-import org.jetbrains.kotlin.compiler.plugin.devkit.runners.devKitDefaults
 import org.jetbrains.kotlin.config.JvmTarget
-import org.jetbrains.kotlin.test.FirParser
 import org.jetbrains.kotlin.test.backend.ir.IrBackendInput
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.configureIrHandlersStep
@@ -34,9 +32,7 @@ private val NoIrCompilationErrorsHandler =
 
 open class AbstractBoxTest(vararg config: TestConfigurationBuilder.() -> Unit) :
   BackportedJvmBlackBoxCodegenTestBase(
-    parser = FirParser.LightTree,
     {
-      devKitDefaults()
       configurePlugin()
 
       useSourcePreprocessor(::KotlinTestImportPreprocessor)

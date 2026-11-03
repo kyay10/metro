@@ -33,7 +33,6 @@ import kotlin.io.path.Path
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import org.jetbrains.kotlin.compiler.plugin.devkit.services.configureDefaultTestDataLibraries
 import org.jetbrains.kotlin.compiler.plugin.devkit.services.configureTestDataLibrary
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
@@ -49,7 +48,6 @@ import org.jetbrains.kotlin.test.services.temporaryDirectoryManager
 
 fun TestConfigurationBuilder.configurePlugin() {
   useConfigurators({ MetroExtensionRegistrarConfigurator(it) })
-  configureDefaultTestDataLibraries()
   configureTestDataLibrary(TestDataLibraries.coroutines + TestDataLibraries.runtimeCoroutines) {
     MetroDirectives.includeMetroRuntimeCoroutines(it.directives)
   }
