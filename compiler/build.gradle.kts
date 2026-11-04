@@ -193,23 +193,8 @@ kotlin {
 
       // Cover for https://github.com/tschuchortdev/kotlin-compile-testing/issues/274
       implementation(libs.kotlin.aptEmbeddable)
-      implementation("dev.zacsweers.kctfork:core:0.13.0")
-      implementation("dev.zacsweers.kctfork:ksp:0.13.0")
-      pluginDevKit {
-        testAgainst.configureEach {
-          test {
-            dependencies {
-              if (version.major == 2 && version.minor == 4) {
-                implementation("dev.zacsweers.kctfork:core:0.13.0")
-                implementation("dev.zacsweers.kctfork:ksp:0.13.0")
-              } else {
-                implementation(libs.kct)
-                implementation(libs.kct.ksp)
-              }
-            }
-          }
-        }
-      }
+      implementation(libs.kct)
+      implementation(libs.kct.ksp)
       implementation(libs.okio)
       implementation(libs.junit)
       implementation(libs.kotlin.test)
