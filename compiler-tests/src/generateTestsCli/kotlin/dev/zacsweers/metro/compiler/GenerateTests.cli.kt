@@ -2,12 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
-import org.jetbrains.kotlin.compiler.plugin.devkit.SourceSetName
-import org.jetbrains.kotlin.compiler.plugin.devkit.sourceSetTestClass
+import org.jetbrains.kotlin.compiler.plugin.devkit.DevKitTestGroup
 import org.jetbrains.kotlin.generators.dsl.TestGroup
 
-context(_: SourceSetName)
-actual fun TestGroup.extraClasses() {
+actual fun DevKitTestGroup.extraClasses() {
   val nonJvmModel: TestGroup.TestClass.(name: String) -> Unit = { name ->
     model(
       name,
@@ -15,8 +13,8 @@ actual fun TestGroup.extraClasses() {
       excludeDirsRecursively = listOf("interop", "circuit"),
     )
   }
-  sourceSetTestClass<AbstractJsBoxTest> { nonJvmModel("box") }
-  sourceSetTestClass<AbstractJsFastInitBoxTest> { nonJvmModel("box") }
-  sourceSetTestClass<AbstractJsContributionProvidersBoxTest> { nonJvmModel("box") }
-  sourceSetTestClass<AbstractJsDiagnosticTest> { nonJvmModel("diagnostic") }
+  testClass<AbstractJsBoxTest> { nonJvmModel("box") }
+  testClass<AbstractJsFastInitBoxTest> { nonJvmModel("box") }
+  testClass<AbstractJsContributionProvidersBoxTest> { nonJvmModel("box") }
+  testClass<AbstractJsDiagnosticTest> { nonJvmModel("diagnostic") }
 }

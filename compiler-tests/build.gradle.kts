@@ -1,18 +1,14 @@
 // Copyright (C) 2025 Zac Sweers
 // SPDX-License-Identifier: Apache-2.0
-@file:OptIn(ExperimentalWasmDsl::class)
 
 import org.jetbrains.kotlin.compiler.plugin.devkit.setClasspathProperty
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
   id("devkit.library")
 }
 
-pluginDevKit.companionLibrariesKotlinVersion =
-  KotlinToolingVersion(libs.versions.kotlinPublished.get())
+pluginDevKit.generateTestsEnabled = true
 
 // Configure the compiler-version-related test properties per registered devkit test suite, so
 // each `<version>Test` suite reports its own pinned version at runtime rather than a single

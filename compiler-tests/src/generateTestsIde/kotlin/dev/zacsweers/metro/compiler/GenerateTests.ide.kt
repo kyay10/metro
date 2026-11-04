@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
-import org.jetbrains.kotlin.compiler.plugin.devkit.SourceSetName
-import org.jetbrains.kotlin.generators.dsl.TestGroup
+import org.jetbrains.kotlin.compiler.plugin.devkit.DevKitTestGroup
 
-context(_: SourceSetName)
-actual fun TestGroup.extraClasses() {}
+actual fun DevKitTestGroup.extraClasses() {}
