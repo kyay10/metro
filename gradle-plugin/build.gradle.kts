@@ -4,7 +4,6 @@ import com.android.build.gradle.internal.lint.AndroidLintAnalysisTask
 import com.android.build.gradle.internal.lint.LintModelWriterTask
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.util.Properties
-import org.jetbrains.kotlin.compiler.plugin.devkit.ProjectOrGav
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
@@ -146,8 +145,6 @@ dependencies {
 }
 
 pluginDevKit {
-  compilerPlugin = ProjectOrGav.LocalProject(project(":compiler").isolated)
-  includedBuildProjects.add("libraries")
   functionalTestProject(project(":metro-trace"))
   functionalTestProject(project(":interop-dagger"))
   functionalTestProject(project(":interop-guice"))

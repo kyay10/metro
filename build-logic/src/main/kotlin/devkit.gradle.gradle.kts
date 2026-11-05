@@ -4,4 +4,7 @@ plugins {
   kotlin("compiler.plugin.devkit.gradle-plugin")
 }
 
-pluginDevKit { config() }
+pluginDevKit {
+  config()
+  compilerPlugin("compiler")
+}
