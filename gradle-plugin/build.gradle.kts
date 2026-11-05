@@ -142,6 +142,7 @@ dependencies {
   functionalTestImplementation(libs.testkit.support)
   functionalTestImplementation(libs.testkit.truth)
   functionalTestRuntimeOnly(libs.circuit.runtime.presenter)
+  functionalTestRuntimeOnly("$group:runtime-coroutines:$version")
 }
 
 pluginDevKit {

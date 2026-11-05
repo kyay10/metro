@@ -13,7 +13,3 @@ plugins {
   id("metro.dokka")
   id("metro.apiValidation")
 }
-
-tasks.installForFunctionalTest {
-  dependsOn(childProjects.keys.map { ":$it:installForFunctionalTest" })
-}
