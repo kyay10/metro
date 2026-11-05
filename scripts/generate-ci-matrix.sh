@@ -49,6 +49,10 @@ fi
 
 latest_kotlin_version=$(echo "$versions" | tail -n 1)
 
+# Versioned dump checks need the full supported version set, so single-version lanes pass this to
+# the devkit's classifiedDumpVersions property.
+all_kotlin_versions="${versions//$'\n'/,}"
+
 # Versions that only exist because an IDE build ships them. The devkit Gradle plugin
 # won't register these as functionalTest targets, so the matrix flags them and CI skips that step.
 ide_only_versions=$([ -f "$IDE_ONLY_VERSIONS_FILE" ] && grep -v '^[[:space:]]*$' "$IDE_ONLY_VERSIONS_FILE" || true)
@@ -126,5 +130,6 @@ if [ "${GITHUB_OUTPUT:-}" ]; then
     echo "matrix=$matrix_json" >> "$GITHUB_OUTPUT"
     echo "default_kotlin_version=$default_kotlin_version" >> "$GITHUB_OUTPUT"
     echo "latest_kotlin_version=$latest_kotlin_version" >> "$GITHUB_OUTPUT"
+    echo "all_kotlin_versions=$all_kotlin_versions" >> "$GITHUB_OUTPUT"
     echo "🚀 Matrix written to GITHUB_OUTPUT"
 fi

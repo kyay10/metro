@@ -53,6 +53,7 @@ jobs:
       matrix: ${{ steps.generate.outputs.matrix }}
       default_kotlin_version: ${{ steps.generate.outputs.default_kotlin_version }}
       latest_kotlin_version: ${{ steps.generate.outputs.latest_kotlin_version }}
+      all_kotlin_versions: ${{ steps.generate.outputs.all_kotlin_versions }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -126,6 +127,7 @@ jobs:
     env:
       METRO_TEST_OMIT_REDUNDANT_MIRRORS: ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.default_kotlin_version || matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version }}
       METRO_CI_SINGLE_VERSION: true
+      ORG_GRADLE_PROJECT_kotlin.compiler.plugin.devkit.classifiedDumpVersions: ${{ needs.generate-matrix.outputs.all_kotlin_versions }}
     permissions:
       checks: write
 
@@ -189,9 +191,11 @@ jobs:
   shaded-compiler-smoke:
     name: shaded compiler / JDK 21
     runs-on: ubuntu-latest
+    needs: generate-matrix
     timeout-minutes: 40
     env:
       METRO_CI_SINGLE_VERSION: true
+      ORG_GRADLE_PROJECT_kotlin.compiler.plugin.devkit.classifiedDumpVersions: ${{ needs.generate-matrix.outputs.all_kotlin_versions }}
     permissions:
       checks: write
 
@@ -252,9 +256,11 @@ jobs:
   js-box:
     name: ${{ github.ref == 'refs/heads/main' && 'js box / full' || 'web / smoke' }}
     runs-on: ubuntu-latest
+    needs: generate-matrix
     timeout-minutes: 40
     env:
       METRO_CI_SINGLE_VERSION: true
+      ORG_GRADLE_PROJECT_kotlin.compiler.plugin.devkit.classifiedDumpVersions: ${{ needs.generate-matrix.outputs.all_kotlin_versions }}
     permissions:
       checks: write
 
