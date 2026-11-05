@@ -63,10 +63,6 @@ interface AppGraph {
       field = DoubleCheck/* companion */.provider<Provider<String>, String>(delegate = SwitchingProvider<String>(graph = <this>, id = 0))
 
     private class SwitchingProvider<T : Any?> : Provider<T> {
-      private val graph: Impl
-
-      private val id: Int
-
       constructor(graph: Impl, id: Int) /* primary */ {
         super/*Any*/()
         <this>.#graph = graph
@@ -84,6 +80,10 @@ interface AppGraph {
           }
         }
       }
+
+      private val graph: Impl
+
+      private val id: Int
 
     }
 

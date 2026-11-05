@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package dev.zacsweers.metro.compiler
 
+import org.jetbrains.kotlin.compiler.plugin.devkit.handlers.BackportedIrTextDumpHandler
 import org.jetbrains.kotlin.compiler.plugin.devkit.runners.DevKitTest
 import org.jetbrains.kotlin.compiler.plugin.devkit.setupJvmPipelineSteps
 import org.jetbrains.kotlin.compiler.plugin.devkit.useFailureSuppressorsCompat
@@ -10,7 +11,6 @@ import org.jetbrains.kotlin.test.FirParser
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.backend.BlackBoxCodegenSuppressor
 import org.jetbrains.kotlin.test.backend.handlers.IrSourceRangesDumpHandler
-import org.jetbrains.kotlin.test.backend.handlers.IrTextDumpHandler
 import org.jetbrains.kotlin.test.backend.handlers.IrTreeVerifierHandler
 import org.jetbrains.kotlin.test.builders.configureIrHandlersStep
 import org.jetbrains.kotlin.test.configuration.additionalK2ConfigurationForIrTextTest
@@ -47,7 +47,7 @@ open class AbstractIrDumpTest :
       // Register IR handlers with our custom handler instead of IrPrettyKotlinDumpHandler
       configureIrHandlersStep {
         useHandlers(
-          ::IrTextDumpHandler,
+          ::BackportedIrTextDumpHandler,
           ::IrTreeVerifierHandler,
           ::MetroIrPrettyKotlinDumpHandler,
           ::IrSourceRangesDumpHandler,

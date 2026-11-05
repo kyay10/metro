@@ -53,20 +53,8 @@ interface AppGraph {
     private val thisGraphInstance: Impl
       field = <this>
 
-    internal val shard1: Shard1
-
-    internal val shard2: Shard2
-
-    internal val shard3: Shard3
-
     private class Shard1 {
-      internal val scopedClassProvider: Provider<ScopedClass>
-
       private class SwitchingProvider<T : Any?> : Provider<T> {
-        private val graph: Shard1
-
-        private val id: Int
-
         constructor(graph: Shard1, id: Int) /* primary */ {
           super/*Any*/()
           <this>.#graph = graph
@@ -83,6 +71,10 @@ interface AppGraph {
           }
         }
 
+        private val graph: Shard1
+
+        private val id: Int
+
       }
 
       constructor() /* primary */ {
@@ -90,18 +82,12 @@ interface AppGraph {
         <this>.#scopedClassProvider = DoubleCheck/* companion */.provider<Provider<ScopedClass>, ScopedClass>(delegate = SwitchingProvider<ScopedClass>(graph = <this>, id = 2))
       }
 
+      internal val scopedClassProvider: Provider<ScopedClass>
+
     }
 
     private class Shard2 {
-      internal val provideReusedIntProvider: Provider<Int>
-
-      internal val graph: Impl
-
       private class SwitchingProvider<T : Any?> : Provider<T> {
-        private val graph: Shard2
-
-        private val id: Int
-
         constructor(graph: Shard2, id: Int) /* primary */ {
           super/*Any*/()
           <this>.#graph = graph
@@ -118,6 +104,10 @@ interface AppGraph {
           }
         }
 
+        private val graph: Shard2
+
+        private val id: Int
+
       }
 
       constructor(graph: Impl) /* primary */ {
@@ -126,18 +116,14 @@ interface AppGraph {
         <this>.#provideReusedIntProvider = SwitchingProvider<Int>(graph = <this>, id = 1)
       }
 
+      internal val graph: Impl
+
+      internal val provideReusedIntProvider: Provider<Int>
+
     }
 
     private class Shard3 {
-      internal val provideStringProvider: Provider<String>
-
-      internal val graph: Impl
-
       private class SwitchingProvider<T : Any?> : Provider<T> {
-        private val graph: Shard3
-
-        private val id: Int
-
         constructor(graph: Shard3, id: Int) /* primary */ {
           super/*Any*/()
           <this>.#graph = graph
@@ -154,6 +140,10 @@ interface AppGraph {
           }
         }
 
+        private val graph: Shard3
+
+        private val id: Int
+
       }
 
       constructor(graph: Impl) /* primary */ {
@@ -161,6 +151,10 @@ interface AppGraph {
         <this>.#graph = graph
         <this>.#provideStringProvider = DoubleCheck/* companion */.provider<Provider<String>, String>(delegate = SwitchingProvider<String>(graph = <this>, id = 0))
       }
+
+      internal val graph: Impl
+
+      internal val provideStringProvider: Provider<String>
 
     }
 
@@ -187,6 +181,12 @@ interface AppGraph {
       override get(): ScopedClass {
         return <this>.#shard1.#scopedClassProvider.invoke()
       }
+
+    internal val shard1: Shard1
+
+    internal val shard2: Shard2
+
+    internal val shard3: Shard3
 
     override val string: String
       override get(): String {

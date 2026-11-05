@@ -303,32 +303,20 @@ interface TestGraph {
   @Deprecated(message = "This synthesized declaration should not be used directly", level = DeprecationLevel.HIDDEN)
   @MetroImplMarker
   class Impl : TestGraph {
-    internal val shard1: Shard1
-
-    internal val shard2: Shard2
-
-    internal val shard3: Shard3
-
     private class Shard1 {
-      internal val aProvider: Provider<A>
-
-      internal val bProvider: Provider<B>
-
       constructor() /* primary */ {
         super/*Any*/()
         <this>.#aProvider = DoubleCheck/* companion */.provider<Provider<A>, A>(delegate = A.MetroFactory.create())
         <this>.#bProvider = DoubleCheck/* companion */.provider<Provider<B>, B>(delegate = B.MetroFactory/* companion */.create(a = <this>.#aProvider))
       }
 
+      internal val aProvider: Provider<A>
+
+      internal val bProvider: Provider<B>
+
     }
 
     private class Shard2 {
-      internal val cProvider: Provider<C>
-
-      internal val dProvider: Provider<D>
-
-      internal val graph: Impl
-
       constructor(graph: Impl) /* primary */ {
         super/*Any*/()
         <this>.#graph = graph
@@ -337,18 +325,24 @@ interface TestGraph {
         DelegateFactory/* companion */.setDelegate<C>(delegateFactory = <this>.#cProvider, delegate = DoubleCheck/* companion */.provider<Provider<C>, C>(delegate = C.MetroFactory/* companion */.create(b = <this>.#graph.#shard1.#bProvider, d = <this>.#dProvider)))
       }
 
-    }
+      internal val cProvider: Provider<C>
 
-    private class Shard3 {
-      internal val eProvider: Provider<E>
+      internal val dProvider: Provider<D>
 
       internal val graph: Impl
 
+    }
+
+    private class Shard3 {
       constructor(graph: Impl) /* primary */ {
         super/*Any*/()
         <this>.#graph = graph
         <this>.#eProvider = DoubleCheck/* companion */.provider<Provider<E>, E>(delegate = E.MetroFactory/* companion */.create(c = <this>.#graph.#shard2.#cProvider))
       }
+
+      internal val eProvider: Provider<E>
+
+      internal val graph: Impl
 
     }
 
@@ -365,6 +359,12 @@ interface TestGraph {
       override get(): E {
         return <this>.#shard3.#eProvider.invoke()
       }
+
+    internal val shard1: Shard1
+
+    internal val shard2: Shard2
+
+    internal val shard3: Shard3
 
   }
 

@@ -360,19 +360,7 @@ interface TestGraph {
   @Deprecated(message = "This synthesized declaration should not be used directly", level = DeprecationLevel.HIDDEN)
   @MetroImplMarker
   class Impl : TestGraph {
-    internal val shard1: Shard1
-
-    internal val shard2: Shard2
-
     private class Shard1 {
-      internal val aProvider: Provider<A>
-
-      internal val bProvider: Provider<B>
-
-      internal val cProvider: Provider<C>
-
-      internal val dProvider: Provider<D>
-
       constructor() /* primary */ {
         super/*Any*/()
         <this>.init()
@@ -389,21 +377,29 @@ interface TestGraph {
         <this>.#dProvider = DoubleCheck/* companion */.provider<Provider<D>, D>(delegate = D.MetroFactory/* companion */.create(c = <this>.#cProvider))
       }
 
+      internal val aProvider: Provider<A>
+
+      internal val bProvider: Provider<B>
+
+      internal val cProvider: Provider<C>
+
+      internal val dProvider: Provider<D>
+
     }
 
     private class Shard2 {
-      internal val eProvider: Provider<E>
-
-      internal val fProvider: Provider<F>
-
-      internal val graph: Impl
-
       constructor(graph: Impl) /* primary */ {
         super/*Any*/()
         <this>.#graph = graph
         <this>.#eProvider = DoubleCheck/* companion */.provider<Provider<E>, E>(delegate = E.MetroFactory/* companion */.create(d = <this>.#graph.#shard1.#dProvider))
         <this>.#fProvider = DoubleCheck/* companion */.provider<Provider<F>, F>(delegate = F.MetroFactory/* companion */.create(e = <this>.#eProvider))
       }
+
+      internal val eProvider: Provider<E>
+
+      internal val fProvider: Provider<F>
+
+      internal val graph: Impl
 
     }
 
@@ -419,6 +415,10 @@ interface TestGraph {
       override get(): F {
         return <this>.#shard2.#fProvider.invoke()
       }
+
+    internal val shard1: Shard1
+
+    internal val shard2: Shard2
 
   }
 

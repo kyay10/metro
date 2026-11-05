@@ -8,56 +8,134 @@ plugins {
   id("devkit.library")
 }
 
-pluginDevKit.generateTestsEnabled = true
+pluginDevKit {
+  generateTestsEnabled = true
 
-// Configure the compiler-version-related test properties per registered devkit test suite, so
-// each `<version>Test` suite reports its own pinned version at runtime rather than a single
-// global value.
-pluginDevKit.testAgainst.configureEach {
-  testTask {
-    systemProperty("metro.test.jvmTarget", libs.versions.jvmTarget.get())
+  versionHierarchy {
+    split("2.4.20-Beta2")
   }
-}
 
-pluginDevKit.testDataLibraries {
-  register("runtimeCoroutines") { common("$group:runtime-coroutines:$version") }
-  register("coroutines", isTransitive = true) {
-    common(libs.coroutines) {
-      exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
-      exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-js")
+  // Configure the compiler-version-related test properties per registered devkit test suite, so
+  // each `<version>Test` suite reports its own pinned version at runtime rather than a single
+  // global value.
+  testAgainst.configureEach {
+    testTask {
+      systemProperty("metro.test.jvmTarget", libs.versions.jvmTarget.get())
     }
   }
-  register("runtimeTracing", isTransitive = true) { jvm(project(":metro-trace")) }
-  register("anvil") {
-    jvm(libs.anvil.annotations)
-    jvm(libs.anvil.annotations.optional)
+
+  testDataLibraries {
+    register("runtimeCoroutines") { common("$group:runtime-coroutines:$version") }
+    register("coroutines", isTransitive = true) {
+      common(libs.coroutines) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib-js")
+      }
+    }
+    register("runtimeTracing", isTransitive = true) { jvm(project(":metro-trace")) }
+    register("anvil") {
+      jvm(libs.anvil.annotations)
+      jvm(libs.anvil.annotations.optional)
+    }
+    register("kiAnvil") {
+      jvm(libs.kotlinInject.anvil.runtime)
+      jvm(libs.kotlinInject.runtime)
+    }
+    // include transitive in this case to grab compose and circuit runtimes
+    register("circuit", isTransitive = true) {
+      common(libs.circuit.runtime.presenter)
+      common(libs.circuit.runtime.ui)
+      common(libs.circuit.codegenAnnotations)
+      common(libs.circuit.subcircuit)
+      js(libs.compose.ui)
+      js(libs.kotlinInject.anvil.runtime.optional)
+      js(libs.kotlinInject.runtime)
+      js(libs.kotlinx.browser)
+    }
+    // include transitive in this case to grab jakarta and javax
+    register("dagger", isTransitive = true) { jvm(libs.dagger.runtime) }
+    register("daggerInterop") { jvm(project(":interop-dagger")) }
+    register("hiltCore") { jvm(libs.hilt.core) }
+    // include transitive in this case to grab jakarta and javax
+    register("guice", isTransitive = true) {
+      jvm(project(":interop-guice"))
+      jvm(libs.guice)
+    }
+    register("javaxInterop") { jvm(project(":interop-javax")) }
+    register("jakartaInterop") { jvm(project(":interop-jakarta")) }
   }
-  register("kiAnvil") {
-    jvm(libs.kotlinInject.anvil.runtime)
-    jvm(libs.kotlinInject.runtime)
+
+  val largeTestMode = providers.gradleProperty("metro.enableLargeTests").isPresent
+  val excludeJsBoxTests = providers.gradleProperty("metro.excludeJsBoxTests").isPresent
+  val testOmitRedundantMirrors = providers.gradleProperty("metro.testOmitRedundantMirrors").orNull
+
+  pluginDevKit.testAgainst.configureEach {
+    testTask {
+      outputs.upToDateWhen { false }
+
+      // Inspo from https://youtrack.jetbrains.com/issue/KT-83440
+      minHeapSize = "512m"
+      maxHeapSize = if (largeTestMode) "5g" else "2g"
+      jvmArgs(
+        "-ea",
+        "-XX:+UseCodeCacheFlushing",
+        "-XX:ReservedCodeCacheSize=256m",
+        "-XX:MaxMetaspaceSize=${if (largeTestMode) "512m" else "1g"}",
+        "-XX:CICompilerCount=2",
+        "-Djna.nosys=true",
+      )
+
+      if (providers.gradleProperty("metro.debugCompilerTests").isPresent) {
+        testLogging {
+          showStandardStreams = true
+          showStackTraces = true
+
+          // Set options for log level LIFECYCLE
+          events("started", "passed", "failed", "skipped")
+          setExceptionFormat("short")
+
+          // Setting this to 0 (the default is 2) will display the test executor that each test is
+          // running on.
+          displayGranularity = 0
+        }
+
+        val outputDir = isolated.rootProject.projectDirectory.dir("tmp").asFile.apply { mkdirs() }
+
+        jvmArgs(
+          "-XX:+HeapDumpOnOutOfMemoryError", // Produce a heap dump when an OOM occurs
+          "-XX:+CrashOnOutOfMemoryError", // Produce a crash report when an OOM occurs
+          "-XX:+UseGCOverheadLimit",
+          "-XX:GCHeapFreeLimit=10",
+          "-XX:GCTimeLimit=20",
+          "-XX:HeapDumpPath=$outputDir",
+          "-XX:ErrorFile=$outputDir",
+        )
+      }
+
+      if (largeTestMode) {
+        filter { includeTestsMatching("*StressTest*") }
+      } else {
+        filter { excludeTestsMatching("*StressTest*") }
+      }
+      if (excludeJsBoxTests) {
+        filter {
+          excludeTestsMatching("dev.zacsweers.metro.compiler.*JsBoxTestGenerated*")
+          excludeTestsMatching("dev.zacsweers.metro.compiler.*JsFastInitBoxTestGenerated*")
+          excludeTestsMatching(
+            "dev.zacsweers.metro.compiler.*JsContributionProvidersBoxTestGenerated*"
+          )
+        }
+      }
+
+      systemProperty("metro.shortLocations", "true")
+      testOmitRedundantMirrors?.let { systemProperty("metro.testOmitRedundantMirrors", it) }
+
+      setClasspathProperty(
+        "ksp.testRuntimeClasspath",
+        configurations.named(testFixturesCompilation.runtimeDependencyConfigurationName),
+      )
+    }
   }
-  // include transitive in this case to grab compose and circuit runtimes
-  register("circuit", isTransitive = true) {
-    common(libs.circuit.runtime.presenter)
-    common(libs.circuit.runtime.ui)
-    common(libs.circuit.codegenAnnotations)
-    common(libs.circuit.subcircuit)
-    js(libs.compose.ui)
-    js(libs.kotlinInject.anvil.runtime.optional)
-    js(libs.kotlinInject.runtime)
-    js(libs.kotlinx.browser)
-  }
-  // include transitive in this case to grab jakarta and javax
-  register("dagger", isTransitive = true) { jvm(libs.dagger.runtime) }
-  register("daggerInterop") { jvm(project(":interop-dagger")) }
-  register("hiltCore") { jvm(libs.hilt.core) }
-  // include transitive in this case to grab jakarta and javax
-  register("guice", isTransitive = true) {
-    jvm(project(":interop-guice"))
-    jvm(libs.guice)
-  }
-  register("javaxInterop") { jvm(project(":interop-javax")) }
-  register("jakartaInterop") { jvm(project(":interop-jakarta")) }
 }
 
 kotlin.sourceSets {
@@ -80,77 +158,5 @@ kotlin.sourceSets {
       // via ServiceLoader
       runtimeOnly(libs.anvil.kspCompiler)
     }
-  }
-}
-
-val largeTestMode = providers.gradleProperty("metro.enableLargeTests").isPresent
-val excludeJsBoxTests = providers.gradleProperty("metro.excludeJsBoxTests").isPresent
-val testOmitRedundantMirrors = providers.gradleProperty("metro.testOmitRedundantMirrors").orNull
-
-pluginDevKit.testAgainst.configureEach {
-  testTask {
-    outputs.upToDateWhen { false }
-
-    // Inspo from https://youtrack.jetbrains.com/issue/KT-83440
-    minHeapSize = "512m"
-    maxHeapSize = if (largeTestMode) "5g" else "2g"
-    jvmArgs(
-      "-ea",
-      "-XX:+UseCodeCacheFlushing",
-      "-XX:ReservedCodeCacheSize=256m",
-      "-XX:MaxMetaspaceSize=${if (largeTestMode) "512m" else "1g"}",
-      "-XX:CICompilerCount=2",
-      "-Djna.nosys=true",
-    )
-
-    if (providers.gradleProperty("metro.debugCompilerTests").isPresent) {
-      testLogging {
-        showStandardStreams = true
-        showStackTraces = true
-
-        // Set options for log level LIFECYCLE
-        events("started", "passed", "failed", "skipped")
-        setExceptionFormat("short")
-
-        // Setting this to 0 (the default is 2) will display the test executor that each test is
-        // running on.
-        displayGranularity = 0
-      }
-
-      val outputDir = isolated.rootProject.projectDirectory.dir("tmp").asFile.apply { mkdirs() }
-
-      jvmArgs(
-        "-XX:+HeapDumpOnOutOfMemoryError", // Produce a heap dump when an OOM occurs
-        "-XX:+CrashOnOutOfMemoryError", // Produce a crash report when an OOM occurs
-        "-XX:+UseGCOverheadLimit",
-        "-XX:GCHeapFreeLimit=10",
-        "-XX:GCTimeLimit=20",
-        "-XX:HeapDumpPath=$outputDir",
-        "-XX:ErrorFile=$outputDir",
-      )
-    }
-
-    if (largeTestMode) {
-      filter { includeTestsMatching("*StressTest*") }
-    } else {
-      filter { excludeTestsMatching("*StressTest*") }
-    }
-    if (excludeJsBoxTests) {
-      filter {
-        excludeTestsMatching("dev.zacsweers.metro.compiler.*JsBoxTestGenerated*")
-        excludeTestsMatching("dev.zacsweers.metro.compiler.*JsFastInitBoxTestGenerated*")
-        excludeTestsMatching(
-          "dev.zacsweers.metro.compiler.*JsContributionProvidersBoxTestGenerated*"
-        )
-      }
-    }
-
-    systemProperty("metro.shortLocations", "true")
-    testOmitRedundantMirrors?.let { systemProperty("metro.testOmitRedundantMirrors", it) }
-
-    setClasspathProperty(
-      "ksp.testRuntimeClasspath",
-      configurations.named(testFixturesCompilation.runtimeDependencyConfigurationName),
-    )
   }
 }
