@@ -127,7 +127,6 @@ jobs:
     env:
       METRO_TEST_OMIT_REDUNDANT_MIRRORS: ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.default_kotlin_version || matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version }}
       METRO_CI_SINGLE_VERSION: true
-      ORG_GRADLE_PROJECT_kotlin.compiler.plugin.devkit.classifiedDumpVersions: ${{ needs.generate-matrix.outputs.all_kotlin_versions }}
     permissions:
       checks: write
 
@@ -151,6 +150,7 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:generateTests --quiet \
             ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version && '-Pkotlin.compiler.plugin.devkit.useLatestBootstrap=true' || format('-Pkotlin.compiler.plugin.devkit.defaultTestVersion={0}', matrix.kotlin-compiler) }} \
+            -Pkotlin.compiler.plugin.devkit.classifiedDumpVersions=${{ needs.generate-matrix.outputs.all_kotlin_versions }} \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
@@ -158,6 +158,7 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :compiler:defaultTest :compiler-tests:defaultTest --continue --quiet \
             ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version && '-Pkotlin.compiler.plugin.devkit.useLatestBootstrap=true' || format('-Pkotlin.compiler.plugin.devkit.defaultTestVersion={0}', matrix.kotlin-compiler) }} \
+            -Pkotlin.compiler.plugin.devkit.classifiedDumpVersions=${{ needs.generate-matrix.outputs.all_kotlin_versions }} \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pmetro.excludeJsBoxTests \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -169,6 +170,7 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:defaultFunctionalTest --continue --quiet \
             ${{ matrix.kotlin-compiler == needs.generate-matrix.outputs.latest_kotlin_version && '-Pkotlin.compiler.plugin.devkit.useLatestBootstrap=true' || format('-Pkotlin.compiler.plugin.devkit.defaultTestVersion={0}', matrix.kotlin-compiler) }} \
+            -Pkotlin.compiler.plugin.devkit.classifiedDumpVersions=${{ needs.generate-matrix.outputs.all_kotlin_versions }} \
             "-Pmetro.testOmitRedundantMirrors=$METRO_TEST_OMIT_REDUNDANT_MIRRORS" \
             -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=jvm \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
@@ -195,7 +197,6 @@ jobs:
     timeout-minutes: 40
     env:
       METRO_CI_SINGLE_VERSION: true
-      ORG_GRADLE_PROJECT_kotlin.compiler.plugin.devkit.classifiedDumpVersions: ${{ needs.generate-matrix.outputs.all_kotlin_versions }}
     permissions:
       checks: write
 
@@ -224,6 +225,7 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :compiler-tests:defaultTest --quiet \
             -Pmetro.testJavaVersion=21 \
+            -Pkotlin.compiler.plugin.devkit.classifiedDumpVersions=${{ needs.generate-matrix.outputs.all_kotlin_versions }} \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.compiler.ShadedCompilerTest.optional terminal providers initialize from the shaded compiler jar' \
             --tests 'dev.zacsweers.metro.compiler.*.DiagnosticTestGenerated$Rich.testMissingBindingRich' \
@@ -233,6 +235,7 @@ jobs:
         run: |
           ./scripts/run-ci-gradle.sh :gradle-plugin:defaultFunctionalTest --quiet \
             -Pmetro.testJavaVersion=21 \
+            -Pkotlin.compiler.plugin.devkit.classifiedDumpVersions=${{ needs.generate-matrix.outputs.all_kotlin_versions }} \
             "-Dorg.gradle.java.installations.paths=$METRO_TEST_JAVA_HOME" \
             --tests 'dev.zacsweers.metro.gradle.MetroArtifactsTest.shaded compiler renders rich diagnostics' \
             --tests 'dev.zacsweers.metro.gradle.MetroArtifactsTest.diagnosticsRenderMode is not a compilation input' \
@@ -260,7 +263,6 @@ jobs:
     timeout-minutes: 40
     env:
       METRO_CI_SINGLE_VERSION: true
-      ORG_GRADLE_PROJECT_kotlin.compiler.plugin.devkit.classifiedDumpVersions: ${{ needs.generate-matrix.outputs.all_kotlin_versions }}
     permissions:
       checks: write
 
@@ -277,12 +279,14 @@ jobs:
       - name: Generate tests
         run: |
           ./gradlew :compiler-tests:generateTests --quiet \
+            -Pkotlin.compiler.plugin.devkit.classifiedDumpVersions=${{ needs.generate-matrix.outputs.all_kotlin_versions }} \
             ${{ github.ref != 'refs/heads/main' && '-Dorg.gradle.configuration-cache.read-only=true' || '' }}
 
       - name: Run JS box smoke tests
         if: github.ref != 'refs/heads/main'
         run: |
           ./gradlew :compiler-tests:defaultTest --quiet \
+            -Pkotlin.compiler.plugin.devkit.classifiedDumpVersions=${{ needs.generate-matrix.outputs.all_kotlin_versions }} \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Inject$Assisted.testBasicAssistedInject' \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Multibindings.testMapProviderLazyValues' \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated$Suspend.testMixedSuspendChain' \
@@ -292,6 +296,7 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: |
           ./gradlew :gradle-plugin:defaultFunctionalTest --quiet \
+            -Pkotlin.compiler.plugin.devkit.classifiedDumpVersions=${{ needs.generate-matrix.outputs.all_kotlin_versions }} \
             -Pkotlin.compiler.plugin.devkit.gradle.test.kmpTarget=wasmJs \
             --tests 'dev.zacsweers.metro.gradle.incremental.ICTests.icWorksWhenAddingAParamToExistingInjectedTypeWithScopeWithZeroToOneParams*' \
             -Dorg.gradle.configuration-cache.read-only=true
@@ -300,6 +305,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           ./gradlew :compiler-tests:defaultTest --continue --quiet \
+            -Pkotlin.compiler.plugin.devkit.classifiedDumpVersions=${{ needs.generate-matrix.outputs.all_kotlin_versions }} \
             --tests 'dev.zacsweers.metro.compiler.*.JsBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.*.JsFastInitBoxTestGenerated*' \
             --tests 'dev.zacsweers.metro.compiler.*.JsContributionProvidersBoxTestGenerated*'
